@@ -1,0 +1,47 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Trang chủ</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body>
+    <main class="container">
+        <div th:replace="base :: header"></div>
+
+        <h2 class="text-center text-info mt-1">Quản trị người dùng</h2>
+
+        <form method="post" th:action="@{/admin/add}" class="was-validated" th:object="${users}">
+            <div class="row mb-3 mt-3">
+                <div class="col">
+                    <label for="lastname">Nhập họ và chữ lót</label>
+                    <input type="text" class="form-control" placeholder="Nhập họ và chữ lót" id="lastname" th:field="*{lastname}">
+                </div>
+                <div class="col">
+                    <label for="firstname">Nhập tên</label>
+                    <input type="text" class="form-control" placeholder="Nhập tên" id="firstname" th:field="*{firstname}">
+                </div>
+            </div>
+
+            <div class="mb-3 mt-3"> 
+                <label for="role">Nhập quyền người dùng</label>
+                <select class="form-select" id="role" th:field="*{role}">
+                    <option>Giáo vụ</option>
+                    <option>Giảng viên</option>
+                    <option>Sinh viên</option>
+                </select>
+            </div>
+
+            <div class="mb-3 mt-3"> 
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{image}" />
+                
+                <button type="submit" class="btn btn-info">
+                    <span th:if="${users.id == null}">Thêm người dùng</span>
+                    <span th:unless="${users.id == null}">Cập nhật người dùng</span>
+                </button>
+            </div>
+        </form>
+        <div th:replace="base :: footer"></div>
+    </main>
+</body>
+</html>

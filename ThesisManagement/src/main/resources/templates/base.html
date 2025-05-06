@@ -1,0 +1,48 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+    <head>
+        <title>Trang chủ</title>
+    <th:block th:fragment="bootstrap">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </th:block>
+</head>
+<body>
+    <header th:fragment="header">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="javascript:void(0)">Ghee's Thesis</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mynavbar">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin}">Trang chủ</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex" th:action="@{/}">
+                        <div class="container-fluid">
+                            <a class="navbar-brand" th:href="@{/login}">
+                                <img src="https://res.cloudinary.com/dnqt29l2e/image/upload/v1735750305/b26d5eda-6259-47e8-a805-a4df7f70e5cd.png" 
+                                     alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
+                            </a>
+                        </div>
+
+                        <input class="form-control me-2" type="text" placeholder="Tìm kiếm ...">
+                        <button class="btn btn-primary" type="button">&#xf002;</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <footer th:fragment="footer">
+        <div class="mt-4 p-5 bg-primary text-white rounded">
+            <h1>Thesis Management</h1>
+            <p>Le Gia Huy &copy; 2025</p>
+        </div>
+    </footer>
+</body>
+</html>

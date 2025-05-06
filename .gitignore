@@ -1,5 +1,3 @@
-.env
-
 # Compiled class file
 *.class
 
@@ -25,3 +23,4 @@
 hs_err_pid*
 replay_pid*
 /thesis_student_management/target/
+/ThesisManagement/target/

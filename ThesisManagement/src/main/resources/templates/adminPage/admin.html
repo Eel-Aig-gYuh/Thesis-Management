@@ -1,0 +1,63 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Trang Quản Trị</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body>
+    <main class="container">
+        <div th:replace="base :: header"></div>
+
+        <div>
+            <h2 class="text-center text-info mt-1">Danh sách người dùng</h2>
+        </div>
+        
+        <a th:href="@{/admin/users}" class="btn btn-info mt-2">Thêm sản phẩm</a>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Firstname</th>
+                        <th>Lastname</th>
+                        <th>Avatar</th>
+                        <th>Email</th>
+                        <th>Major</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u:${users}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.username}"></td>
+                        <td th:text="${u.firstname}"></td>
+                        <td th:text="${u.lastname}"></td>
+                        <td th:text="${u.avatar}"></td>
+                        <td th:text="${u.email}"></td>
+                        <td th:text="${u.major}"></td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" th:text="${u.role}">
+                                    
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" >Giáo vụ</a></li>
+                                    <li><a class="dropdown-item" >Giảng viên</a></li>
+                                    <li><a class="dropdown-item" >Sinh viên</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger">&times;</button>
+                            <a class="btn btn-success" th:href="@{'users/' + ${u.id}}">&#128296;️</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="base :: footer"></div>
+    </main>
+</body>
+</html>
