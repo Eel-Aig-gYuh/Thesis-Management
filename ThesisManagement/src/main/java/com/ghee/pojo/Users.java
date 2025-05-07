@@ -4,9 +4,12 @@
  */
 package com.ghee.pojo;
 
+import com.ghee.enums.UserRole;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,12 +17,14 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -78,7 +83,7 @@ public class Users implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 9)
-    @Column(name = "role")
+    @Column(name = "role", nullable = false)
     private String role;
     @Size(max = 100)
     @Column(name = "major")
@@ -108,6 +113,9 @@ public class Users implements Serializable {
     @OneToMany(mappedBy = "reviewerId")
     private Set<ThesisReviewers> thesisReviewersSet;
 
+    @Transient
+    private MultipartFile file;
+    
     public Users() {
     }
 
@@ -326,6 +334,20 @@ public class Users implements Serializable {
     @Override
     public String toString() {
         return "com.ghee.pojo.Users[ id=" + id + " ]";
+    }
+
+    /**
+     * @return the file
+     */
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    /**
+     * @param file the file to set
+     */
+    public void setFile(MultipartFile file) {
+        this.file = file;
     }
     
 }

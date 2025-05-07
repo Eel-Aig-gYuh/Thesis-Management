@@ -10,7 +10,26 @@
 
         <h2 class="text-center text-info mt-1">Quản trị người dùng</h2>
 
-        <form method="post" th:action="@{/admin/add}" class="was-validated" th:object="${users}">
+        <form method="post" th:action="@{/admin/add}" class="was-validated" th:object="${users}" enctype="multipart/form-data">
+            <div class="text-center mb-3 mt-3"> 
+                <label for="avatar">Nhập ảnh đại diện</label>
+                <input type="file" class="form-control" accept="image/*" th:field="*{file}">
+
+                <img src="${u.avatar}" th:if="${users.id != null}"
+                     alt="Avatar Logo" style="width:70px;" class="rounded-pill"> 
+            </div>
+            
+            <div class="row mb-3 mt-3">
+                <div class="col">
+                    <label for="username">Nhập tên tài khoản</label>
+                    <input type="text" class="form-control" placeholder="Nhập tên tài khoản" id="username" th:field="*{username}">
+                </div>
+                <div class="col">
+                    <label for="password">Nhập mật khẩu</label>
+                    <input type="password" class="form-control" placeholder="Nhập mật khẩu" id="password" th:field="*{password}">
+                </div>
+            </div>
+
             <div class="row mb-3 mt-3">
                 <div class="col">
                     <label for="lastname">Nhập họ và chữ lót</label>
@@ -21,21 +40,35 @@
                     <input type="text" class="form-control" placeholder="Nhập tên" id="firstname" th:field="*{firstname}">
                 </div>
             </div>
+            
+            <div class="mb-3 mt-3">
+                <label for="email">Nhập email</label>
+                <input type="email" class="form-control" placeholder="Nhập email" id="email" th:field="*{email}">
+            </div>
 
             <div class="mb-3 mt-3"> 
                 <label for="role">Nhập quyền người dùng</label>
                 <select class="form-select" id="role" th:field="*{role}">
-                    <option>Giáo vụ</option>
-                    <option>Giảng viên</option>
-                    <option>Sinh viên</option>
+                    <option th:each="r : ${roles}"
+                            th:value="${r}" 
+                            th:text="${r.displayName}">Role</option>
                 </select>
             </div>
 
             <div class="mb-3 mt-3"> 
-                <input type="hidden" th:field="*{id}" />
-                <input type="hidden" th:field="*{image}" />
-                
-                <button type="submit" class="btn btn-info">
+                <label for="major">Nhập khoa</label>
+                <select class="form-select" id="major" th:field="*{major}">
+                    <option th:each="m : ${majors}"
+                            th:value="${m}" 
+                            th:text="${m.displayName}">Major</option>
+                </select>
+            </div>
+
+            <div class="mb-3 mt-3"> 
+                <input type="hidden" class="form-control" th:field="*{id}" />
+                <input type="hidden" class="form-control" th:field="*{avatar}" />
+
+                <button type="submit" class="btn btn-info mt-1">
                     <span th:if="${users.id == null}">Thêm người dùng</span>
                     <span th:unless="${users.id == null}">Cập nhật người dùng</span>
                 </button>

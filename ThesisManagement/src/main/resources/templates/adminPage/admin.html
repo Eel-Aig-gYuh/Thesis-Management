@@ -34,7 +34,10 @@
                         <td th:text="${u.username}"></td>
                         <td th:text="${u.firstname}"></td>
                         <td th:text="${u.lastname}"></td>
-                        <td th:text="${u.avatar}"></td>
+                        <td>
+                            <img src="${u.avatar}" 
+                                     alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
+                        </td>
                         <td th:text="${u.email}"></td>
                         <td th:text="${u.major}"></td>
                         <td>
@@ -43,9 +46,7 @@
                                     
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" >Giáo vụ</a></li>
-                                    <li><a class="dropdown-item" >Giảng viên</a></li>
-                                    <li><a class="dropdown-item" >Sinh viên</a></li>
+                                    <li th:each="r:${roles}" class="dropdown-item" th:text="${r.displayName}"></li>
                                 </ul>
                             </div>
                         </td>

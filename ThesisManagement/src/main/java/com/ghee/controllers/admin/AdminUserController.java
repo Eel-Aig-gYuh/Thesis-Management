@@ -4,11 +4,14 @@
  */
 package com.ghee.controllers.admin;
 
+import com.ghee.enums.UserMajor;
+import com.ghee.enums.UserRole;
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,11 +24,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author giahu
  */
 @Controller
+@ControllerAdvice
 @RequestMapping("/admin")
 @CrossOrigin
 public class AdminUserController {
     @Autowired
     private UserService userService;
+    
+    @ModelAttribute
+    public void commonResponse(Model model) {
+        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("majors", UserMajor.values());
+    }
     
     @GetMapping("/users")
     public String userView(Model model) {
@@ -44,6 +54,6 @@ public class AdminUserController {
     public String createUser(@ModelAttribute(value="users") Users u) {
         this.userService.addOrUpdateUser(u);
         
-        return "redirect:/admin";
+        return "redirect:/";
     }
 }

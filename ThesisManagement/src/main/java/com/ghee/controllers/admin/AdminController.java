@@ -4,6 +4,7 @@
  */
 package com.ghee.controllers.admin;
 
+import com.ghee.enums.UserRole;
 import com.ghee.services.UserService;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,8 @@ public class AdminController {
     
     @GetMapping("/")
     public String adminView(Model model, @RequestParam Map<String, String> params) {
+        model.addAttribute("roles", UserRole.values());
         model.addAttribute("users", this.userService.getUsers(params));
-        
         return "adminPage/admin";
     }
 }
