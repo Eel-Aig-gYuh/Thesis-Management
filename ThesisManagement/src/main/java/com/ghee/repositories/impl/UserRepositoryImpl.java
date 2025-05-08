@@ -14,11 +14,15 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @PropertySource("classpath:application.properties")
 public class UserRepositoryImpl implements UserRepository{
+    private static final Logger logger = Logger.getLogger(UserRepositoryImpl.class.getName());
     
     @Autowired
     private LocalSessionFactoryBean factory;
-    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
     @Autowired
     private Environment env;
 
@@ -56,8 +62,7 @@ public class UserRepositoryImpl implements UserRepository{
         
         Query query = s.createQuery(q);
         
-        int pageSize = Integer.valueOf(env.getProperty("page.size"));
-        
+        int pageSize = Integer.parseInt(env.getProperty("page.size"));
         
         if (params != null && params.containsKey("page")) {
             int page = Integer.parseInt(params.get("page"));
@@ -71,29 +76,57 @@ public class UserRepositoryImpl implements UserRepository{
     } 
 
     @Override
-    public Users getUserById(int id) {
+    public Users getUserById(long id) {
         Session s = this.factory.getObject().getCurrentSession();
         return s.get(Users.class, id);
     }
 
     @Override
-    public Users addOrUpdateUser(Users u) {
+    public Users getUserByUsername(String username) {
         Session s = this.factory.getObject().getCurrentSession();
-        
-        if (u.getId() == null) {
-            s.persist(u);
-        } else {
-            s.merge(u);
-        }
-        
-        return u;
+        Query q = s.createNamedQuery("Users.findByUsername", Users.class);
+        q.setParameter("username", username);
+
+        return (Users) q.getSingleResult();
     }
 
     @Override
-    public void deleteUser(int id) {
-        Session s = this.factory.getObject().getCurrentSession();
+    public boolean authenticated(String username, String password) {
+        Users u = this.getUserByUsername(username);
         
-        Users u = this.getUserById(id);
-        s.remove(u);
+        return this.passwordEncoder.matches(password, u.getPassword());
+    }
+    
+    // ====================== GHEE
+    @Override
+    public Users createUser(Users u) {
+        Session s = this.factory.getObject().getCurrentSession();
+        try {
+            logger.log(Level.INFO, "Starting transaction for creating user: {0}", u.getUsername());
+            
+            s.persist(u);
+            s.flush();
+            s.refresh(u);
+            
+            logger.log(Level.INFO, "User created successfully: {0}", u.getUsername());
+            return u;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create user: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public Users updateUser(Users u) {
+        Session s = this.factory.getObject().getCurrentSession();
+        try {
+            logger.log(Level.INFO, "Starting transaction for updating user: {0}", u.getUsername());
+            
+            s.merge(u);
+        
+            logger.log(Level.INFO, "User updated successfully: {0}", u.getUsername());
+            return u;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user: " + e.getMessage(), e);
+        }
     }
 }

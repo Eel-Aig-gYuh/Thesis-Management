@@ -7,14 +7,24 @@ package com.ghee.services;
 import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
  * @author giahu
  */
-public interface UserService {
+public interface UserService extends UserDetailsService {
     public List<Users> getUsers(Map<String, String> params);
-    public Users getUserById(int id);
-    public Users addOrUpdateUser(Users u);
-    public void deleteUser(int id);
+    public Users getUserById(long id);
+    
+    public Users createUser(Map<String, String>params, MultipartFile avatar);
+    public Users updateUser(long id, Map<String, String>params, MultipartFile avatar);
+    public void deleteUser(long id);
+    public void changePassword(long id, String oldPass, String newPass);
+    
+    public String login(String username, String password);
+    
+    public Users getUserByUsername(String username);
+    public boolean authenticated(String username, String password);
 }

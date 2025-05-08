@@ -4,6 +4,9 @@
  */
 package com.ghee.configs;
 
+
+import com.ghee.filters.JwtFilter;
+import jakarta.servlet.Filter;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletRegistration;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -19,7 +22,8 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
         return new Class[] {
             ThymeleafConfig.class,
             HibernateConfigs.class,
-            CloudinaryConfigs.class
+            CloudinaryConfigs.class,
+            SpringSecurityConfigs.class
         };
     }
 
@@ -43,6 +47,11 @@ public class DispatcherServletInit extends AbstractAnnotationConfigDispatcherSer
     @Override
     protected String[] getServletMappings() {
         return new String[]{"/"};
+    }
+    
+    @Override
+    protected Filter[] getServletFilters() {
+        return new Filter[] { new JwtFilter() }; // Filter sẽ áp dụng cho mọi request
     }
     
 }

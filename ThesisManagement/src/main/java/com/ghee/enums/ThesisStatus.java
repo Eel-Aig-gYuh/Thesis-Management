@@ -8,15 +8,16 @@ package com.ghee.enums;
  *
  * @author giahu
  */
-public enum UserRole {
-    ROLE_ADMIN("Admin"),
-    ROLE_GIAOVU("Giáo vụ"),
-    ROLE_GIANGVIEN("Giảng viên"),
-    ROLE_SINHVIEN("Sinh viên");
-
+public enum ThesisStatus {
+    DRAFT("Tạo mới"),
+    REGISTERED("Đăng ký"),
+    APPROVED("Chấp nhận"),
+    REJECTED("Từ chối"),
+    CANCELLED("Hủy bỏ");
+    
     private final String displayName;
 
-    UserRole(String displayName) {
+    ThesisStatus(String displayName) {
         this.displayName = displayName;
     }
 
@@ -24,4 +25,3 @@ public enum UserRole {
         return displayName;
     }
 }
-

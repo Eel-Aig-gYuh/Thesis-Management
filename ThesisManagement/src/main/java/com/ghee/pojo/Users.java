@@ -4,6 +4,7 @@
  */
 package com.ghee.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ghee.enums.UserRole;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -91,30 +92,49 @@ public class Users implements Serializable {
     @Column(name = "is_active")
     private Boolean isActive;
     @OneToMany(mappedBy = "memberId")
+    @JsonIgnore
     private Set<CouncilMembers> councilMembersSet;
+    
     @OneToMany(mappedBy = "councilMemberId")
+    @JsonIgnore
     private Set<Scores> scoresSet;
+    
     @OneToMany(mappedBy = "createdBy")
+    @JsonIgnore
     private Set<Criteria> criteriaSet;
+    
     @OneToMany(mappedBy = "studentId")
+    @JsonIgnore
     private Set<ThesisFiles> thesisFilesSet;
+    
     @OneToMany(mappedBy = "chairmanId")
+    @JsonIgnore
     private Set<Councils> councilsSet;
+    
     @OneToMany(mappedBy = "secretaryId")
+    @JsonIgnore
     private Set<Councils> councilsSet1;
+    
     @OneToMany(mappedBy = "advisorId")
+    @JsonIgnore
     private Set<ThesisAdvisors> thesisAdvisorsSet;
+    
     @OneToMany(mappedBy = "createdBy")
+    @JsonIgnore
     private Set<Theses> thesesSet;
+    
     @OneToMany(mappedBy = "studentId")
+    @JsonIgnore
     private Set<ThesisStudents> thesisStudentsSet;
+    
     @OneToMany(mappedBy = "userId")
+    @JsonIgnore
     private Set<Notifications> notificationsSet;
+    
     @OneToMany(mappedBy = "reviewerId")
+    @JsonIgnore
     private Set<ThesisReviewers> thesisReviewersSet;
-
-    @Transient
-    private MultipartFile file;
+   
     
     public Users() {
     }
@@ -334,20 +354,5 @@ public class Users implements Serializable {
     @Override
     public String toString() {
         return "com.ghee.pojo.Users[ id=" + id + " ]";
-    }
-
-    /**
-     * @return the file
-     */
-    public MultipartFile getFile() {
-        return file;
-    }
-
-    /**
-     * @param file the file to set
-     */
-    public void setFile(MultipartFile file) {
-        this.file = file;
-    }
-    
+    } 
 }

@@ -17,12 +17,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="mynavbar">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" th:href="@{/admin}">Trang chủ</a>
-                        </li>
-                    </ul>
-                    <form class="d-flex" th:action="@{/}">
+                    <form class="d-flex" th:action="@{/}" method="post">
                         <div class="container-fluid">
                             <a class="navbar-brand" th:href="@{/login}">
                                 <img src="https://res.cloudinary.com/dnqt29l2e/image/upload/v1735750305/b26d5eda-6259-47e8-a805-a4df7f70e5cd.png" 
