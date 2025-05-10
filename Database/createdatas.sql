@@ -1,4 +1,4 @@
-use thesisdb;
+use gheethesisdb;
 
 INSERT INTO users (username, password, lastname, firstname, avatar, email, role, major)
 VALUES

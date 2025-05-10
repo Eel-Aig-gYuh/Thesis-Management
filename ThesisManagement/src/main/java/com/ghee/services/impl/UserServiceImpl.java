@@ -83,7 +83,6 @@ public class UserServiceImpl implements UserService{
     // ========================== GHEE
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public String login(String username, String password) {
         logger.log(Level.INFO, "Processing login for username: {0}", username);
         
@@ -114,7 +113,6 @@ public class UserServiceImpl implements UserService{
     }
     
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Users createUser(Map<String, String>params, MultipartFile avatar) {
         logger.log(Level.INFO, "Creating user with username: {0}", params.get("username"));
         
@@ -151,7 +149,6 @@ public class UserServiceImpl implements UserService{
     }
     
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Users updateUser(long id, Map<String, String>params, MultipartFile avatar) {
         logger.log(Level.INFO, "Updating user with ID: {0}", id);
         
@@ -191,7 +188,6 @@ public class UserServiceImpl implements UserService{
     }
     
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteUser(long id) {
         logger.log(Level.INFO, "Deleting user with ID: {0}", id);
         Users u = this.userRepo.getUserById(id);
@@ -206,7 +202,6 @@ public class UserServiceImpl implements UserService{
     } 
     
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void changePassword(long id, String oldPass, String newPass){
         logger.log(Level.INFO, "Changing password for user with ID: {0}", id);
         

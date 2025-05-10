@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Controller
 @ControllerAdvice
-@RequestMapping("/admin")
+@RequestMapping("/admin/users")
 @CrossOrigin
 public class AdminUserController {
     @Autowired
@@ -40,9 +40,16 @@ public class AdminUserController {
         model.addAttribute("majors", UserMajor.values());
     }
     
-    @GetMapping("/users")
-    public String userView(Model model) {
-        model.addAttribute("users", new Users());
+    @GetMapping("/")
+    public String userView(Model model, @RequestParam Map<String, String> params) {
+        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("users", this.userService.getUsers(params));
+        model.addAttribute("activePage", "users");
+        return "userPage/userPage";
+    }
+    
+    @GetMapping("/create")
+    public String userCreateView(Model model) {
         return "userPage/userDetail";
     }
 }

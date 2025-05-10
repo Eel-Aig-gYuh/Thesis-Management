@@ -17,20 +17,47 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="mynavbar">
-                    <form class="d-flex" th:action="@{/}" method="post">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">Trang chủ</a>
+                        </li>
+                    </ul>
+                    <form class="d-flex" th:action="@{/login}" method="post">
                         <div class="container-fluid">
                             <a class="navbar-brand" th:href="@{/login}">
                                 <img src="https://res.cloudinary.com/dnqt29l2e/image/upload/v1735750305/b26d5eda-6259-47e8-a805-a4df7f70e5cd.png" 
                                      alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
                             </a>
                         </div>
-
-                        <input class="form-control me-2" type="text" placeholder="Tìm kiếm ...">
-                        <button class="btn btn-primary" type="button">&#xf002;</button>
+                        <div>
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <a class="nav-link text-danger" th:href="@{/logout}" sec:authorize="isAuthenticated()">Đăng xuất</a>
+                                </li>
+                            </ul>
+                        </div>
                     </form>
                 </div>
             </div>
         </nav>
+        
+        <ul class="nav nav-tabs nav-justified" sec:authorize="isAuthenticated()">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activePage} == 'home' ? 'active'" th:href="@{/admin/}">Trang chủ</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activePage} == 'users' ? 'active'" th:href="@{/admin/users/}">Quản lý người dùng</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${activePage} == 'thesis' ? 'active'" th:href="@{/admin/thesis/}">Quản lý khóa luận</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">Disabled</a>
+            </li>
+        </ul>
     </header>
 
     <footer th:fragment="footer">

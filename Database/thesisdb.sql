@@ -1,4 +1,4 @@
-USE thesisdb;
+USE gheethesisdb;
 
 -- Bảng users
 CREATE TABLE users (

@@ -4,6 +4,7 @@
  */
 package com.ghee.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,15 +59,23 @@ public class Councils implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    
     @OneToMany(mappedBy = "councilId")
+    @JsonIgnore
     private Set<CouncilMembers> councilMembersSet;
+    
     @OneToMany(mappedBy = "councilId")
+    @JsonIgnore
     private Set<CouncilTheses> councilThesesSet;
+    
     @JoinColumn(name = "chairman_id", referencedColumnName = "id")
     @ManyToOne
+    @JsonIgnore
     private Users chairmanId;
+    
     @JoinColumn(name = "secretary_id", referencedColumnName = "id")
     @ManyToOne
+    @JsonIgnore
     private Users secretaryId;
 
     public Councils() {

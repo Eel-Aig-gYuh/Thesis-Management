@@ -15,16 +15,17 @@ import org.springframework.web.multipart.MultipartFile;
  * @author giahu
  */
 public interface UserService extends UserDetailsService {
-    public List<Users> getUsers(Map<String, String> params);
     public Users getUserById(long id);
+    public Users getUserByUsername(String username);
+    public List<Users> getUsers(Map<String, String> params);
     
     public Users createUser(Map<String, String>params, MultipartFile avatar);
+    
     public Users updateUser(long id, Map<String, String>params, MultipartFile avatar);
-    public void deleteUser(long id);
     public void changePassword(long id, String oldPass, String newPass);
     
-    public String login(String username, String password);
+    public void deleteUser(long id);
     
-    public Users getUserByUsername(String username);
+    public String login(String username, String password);
     public boolean authenticated(String username, String password);
 }

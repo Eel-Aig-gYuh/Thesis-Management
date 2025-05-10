@@ -5,12 +5,9 @@
 package com.ghee.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ghee.enums.UserRole;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,14 +15,12 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.Set;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -57,10 +52,11 @@ public class Users implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 50)
-    @Column(name = "username")
+    @Column(name = "username", unique = true)
     private String username;
     @Basic(optional = false)
     @NotNull
+    @JsonIgnore
     @Size(min = 1, max = 255)
     @Column(name = "password")
     private String password;
@@ -79,7 +75,7 @@ public class Users implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 100)
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
     @Basic(optional = false)
     @NotNull
@@ -91,6 +87,7 @@ public class Users implements Serializable {
     private String major;
     @Column(name = "is_active")
     private Boolean isActive;
+    
     @OneToMany(mappedBy = "memberId")
     @JsonIgnore
     private Set<CouncilMembers> councilMembersSet;

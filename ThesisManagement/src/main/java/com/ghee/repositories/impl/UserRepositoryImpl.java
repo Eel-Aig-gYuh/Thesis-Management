@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -54,9 +53,25 @@ public class UserRepositoryImpl implements UserRepository{
         if (params != null) {
             List<Predicate> predicates = new ArrayList<>();
             
-            String kw = params.get("kw");
-            if (kw != null && !kw.isEmpty()) {
-                predicates.add(b.like(root.get("firstname"), String.format("%%%s%%", kw)));
+            // Lọc theo username
+            String username = params.get("uesrname");
+            if (username != null && !username.isEmpty()) {
+                predicates.add(b.like(root.get("username"), String.format("%%%s%%", username)));
+            }
+            
+            // Lọc theo role
+            String role = params.get("role");
+            if (role != null && !role.isEmpty()) {
+                predicates.add(b.equal(root.get("role"), role));
+            }
+            
+            // Sắp xếp.
+            q.where(predicates.toArray(Predicate[]::new));
+            String order = params.get("order");
+            if ("asc".equalsIgnoreCase(order)) {
+                q.orderBy(b.asc(root.get("id")));
+            } else {
+                q.orderBy(b.desc(root.get("id"))); // mặc định
             }
         }
         
@@ -122,6 +137,7 @@ public class UserRepositoryImpl implements UserRepository{
             logger.log(Level.INFO, "Starting transaction for updating user: {0}", u.getUsername());
             
             s.merge(u);
+            s.refresh(u);
         
             logger.log(Level.INFO, "User updated successfully: {0}", u.getUsername());
             return u;

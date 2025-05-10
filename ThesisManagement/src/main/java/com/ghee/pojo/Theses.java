@@ -4,6 +4,7 @@
  */
 package com.ghee.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,20 +59,34 @@ public class Theses implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<CouncilTheses> councilThesesSet;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<Scores> scoresSet;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<ThesisFiles> thesisFilesSet;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<ThesisAdvisors> thesisAdvisorsSet;
+    
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     @ManyToOne
+    @JsonIgnore
     private Users createdBy;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<ThesisStudents> thesisStudentsSet;
+    
     @OneToMany(mappedBy = "thesisId")
+    @JsonIgnore
     private Set<ThesisReviewers> thesisReviewersSet;
 
     public Theses() {

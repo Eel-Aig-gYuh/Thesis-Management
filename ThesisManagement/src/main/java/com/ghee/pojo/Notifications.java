@@ -4,6 +4,7 @@
  */
 package com.ghee.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -62,8 +63,10 @@ public class Notifications implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne
+    @JsonIgnore
     private Users userId;
 
     public Notifications() {

@@ -6,8 +6,6 @@ package com.ghee.controllers.api;
 
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
-import com.ghee.utils.JwtUtils;
-import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;

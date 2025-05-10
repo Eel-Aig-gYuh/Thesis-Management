@@ -6,10 +6,8 @@ package com.ghee.controllers.api;
 
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
-import com.ghee.utils.JwtUtils;
 import java.security.Principal;
 import java.util.Collections;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author giahu
  */
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("api")
 @CrossOrigin
 public class ApiAuthController {
     private static final Logger logger = Logger.getLogger(ApiAuthController.class.getName());
@@ -42,7 +39,7 @@ public class ApiAuthController {
         return new ResponseEntity<>(this.userService.getUserByUsername(principal.getName()), HttpStatus.OK);
     }
     
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> login(
             @RequestParam(value = "username") String username, 
             @RequestParam(value = "password") String password) {
