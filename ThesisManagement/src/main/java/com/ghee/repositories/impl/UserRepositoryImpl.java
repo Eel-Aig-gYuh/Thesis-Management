@@ -54,7 +54,7 @@ public class UserRepositoryImpl implements UserRepository{
             List<Predicate> predicates = new ArrayList<>();
             
             // Lọc theo username
-            String username = params.get("uesrname");
+            String username = params.get("username");
             if (username != null && !username.isEmpty()) {
                 predicates.add(b.like(root.get("username"), String.format("%%%s%%", username)));
             }
@@ -77,8 +77,8 @@ public class UserRepositoryImpl implements UserRepository{
         
         Query query = s.createQuery(q);
         
+        // Phân trang.
         int pageSize = Integer.parseInt(env.getProperty("page.size"));
-        
         if (params != null && params.containsKey("page")) {
             int page = Integer.parseInt(params.get("page"));
             int start = (page - 1) * pageSize;
@@ -113,6 +113,24 @@ public class UserRepositoryImpl implements UserRepository{
     }
     
     // ====================== GHEE
+    @Override
+    public Users createOrUpdate(Users u) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        if (u.getId() == null) {
+            logger.log(Level.INFO, "Starting transaction for creating user: {0}", u.getUsername());
+            s.persist(u);
+            s.flush();
+        }
+        else {
+            logger.log(Level.INFO, "Starting transaction for updating user: {0}", u.getUsername());
+            s.merge(u);
+        }
+        s.refresh(u);
+        
+        return u;
+    }
+    
     @Override
     public Users createUser(Users u) {
         Session s = this.factory.getObject().getCurrentSession();

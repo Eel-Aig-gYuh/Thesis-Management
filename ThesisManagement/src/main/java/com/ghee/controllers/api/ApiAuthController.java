@@ -6,6 +6,7 @@ package com.ghee.controllers.api;
 
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
+import com.ghee.utils.JwtUtils;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -14,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author giahu
  */
 @RestController
-@RequestMapping("api")
+@RequestMapping("/api")
 @CrossOrigin
 public class ApiAuthController {
     private static final Logger logger = Logger.getLogger(ApiAuthController.class.getName());
@@ -40,19 +43,17 @@ public class ApiAuthController {
     }
     
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(
-            @RequestParam(value = "username") String username, 
-            @RequestParam(value = "password") String password) {
-        logger.log(Level.INFO, "Received login request for username{0}", username);
-        try {
-            String token = this.userService.login(username, password);
-            logger.log(Level.INFO, "Login successful for username: {0}", username);
-            
-            return ResponseEntity.ok().body(Collections.singletonMap("token", token));
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Login failed: {0}", e.getMessage());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> login(@RequestBody Users u) {
+
+        if (this.userService.authenticated(u.getUsername(), u.getPassword())) {
+            try {
+                String token = JwtUtils.generateToken(u.getUsername());
+                return ResponseEntity.ok().body(Collections.singletonMap("token", token));
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Lỗi khi tạo JWT");
+            }
         }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai thông tin đăng nhập");
     }
     
     static class LoginRequest {

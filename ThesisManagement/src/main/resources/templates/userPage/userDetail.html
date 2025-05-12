@@ -1,7 +1,7 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title>Trang chủ</title>
+        <title>Quản Trị Người Dùng</title>
     <th:block th:replace="base :: bootstrap"></th:block>
 </head>
 <body>
@@ -10,12 +10,12 @@
 
         <h2 class="text-center text-info mt-1">Quản trị người dùng</h2>
 
-        <form method="post" th:action="@{/admin/add}" class="was-validated" th:object="${users}" enctype="multipart/form-data">
+        <form method="post" th:action="@{/admin/users/add}" class="was-validated" th:object="${users}" enctype="multipart/form-data">
             <div class="text-center mb-3 mt-3"> 
                 <label for="avatar">Nhập ảnh đại diện</label>
                 <input type="file" class="form-control" accept="image/*" th:field="*{file}">
 
-                <img src="${u.avatar}" th:if="${users.id != null}"
+                <img src="${users.avatar}" th:if="${users.id != null}"
                      alt="Avatar Logo" style="width:70px;" class="rounded-pill"> 
             </div>
             

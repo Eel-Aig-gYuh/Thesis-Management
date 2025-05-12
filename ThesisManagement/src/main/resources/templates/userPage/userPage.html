@@ -1,7 +1,7 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title>Trang Quản Trị</title>
+        <title>Quản Trị Người Dùng</title>
     <th:block th:replace="base :: bootstrap"></th:block>
 </head>
 <body>
@@ -39,60 +39,57 @@
                     <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
                 </div>
                 <div class="col-md-2">
-                    <a th:href="@{/create}" class="btn btn-success">+ Thêm User</a>
+                    <a th:href="@{/admin/users/create}" class="btn btn-success">+ Thêm User</a>
                 </div>  
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên tài khoản</th>
+                            <th>Tên</th>
+                            <th>Họ và lót</th>
+                            <th>Avatar</th>
+                            <th>Email</th>
+                            <th>Chuyên ngành</th>
+                            <th>Role</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u:${users}">
+                            <td th:text="${u.id}"></td>
+                            <td th:text="${u.username}"></td>
+                            <td th:text="${u.firstname}"></td>
+                            <td th:text="${u.lastname}"></td>
+                            <td>
+                                <img th:src="${u.avatar}" 
+                                     alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
+                            </td>
+                            <td th:text="${u.email}"></td>
+                            <td th:text="${u.major}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${u.role.equals('ROLE_ADMIN') ? 'bg-danger' : u.role.equals('ROLE_GIAOVU') ? 'bg-primary' : u.role.equals('ROLE_GIANGVIEN') ? 'bg-warning':'bg-info'}" th:text="${u.role}"></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success" th:if="${u.isActive}">Đang hoạt động</span>
+                                <span class="badge bg-secondary" th:if="${!u.isActive}">Đã khóa</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" th:onclick="'deleteUser(\'' + @{/api/users} + '\', ' + ${u.id} + ')'" >&times;</button>
+                                <a class="btn btn-success" th:href="@{${u.id}}">&#128296;️</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </form>
 
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Username</th>
-                        <th>Firstname</th>
-                        <th>Lastname</th>
-                        <th>Avatar</th>
-                        <th>Email</th>
-                        <th>Major</th>
-                        <th>Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="u:${users}">
-                        <td th:text="${u.id}"></td>
-                        <td th:text="${u.username}"></td>
-                        <td th:text="${u.firstname}"></td>
-                        <td th:text="${u.lastname}"></td>
-                        <td>
-                            <img th:src="${u.avatar}" 
-                                 alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
-                        </td>
-                        <td th:text="${u.email}"></td>
-                        <td th:text="${u.major}"></td>
-                        <td>
-                            <div class="dropdown">
-                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" th:text="${u.role}">
+        <div th:replace="base :: footer"></div>
+    </main>
 
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li th:each="r:${roles}" class="dropdown-item" th:text="${r.displayName}"></li>
-                                </ul>
-                            </div>
-                        </td>
-                        <td>
-                            <button class="btn btn-danger" th:onclick="'deleteUser(\'' + @{/api/users} + '\', ' + ${u.id} + ')'" >&times;</button>
-                            <a class="btn btn-success" th:href="@{'users/' + ${u.id}}">&#128296;️</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </form> 
-
-    <div th:replace="base :: footer"></div>
-</main>
-
-<script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

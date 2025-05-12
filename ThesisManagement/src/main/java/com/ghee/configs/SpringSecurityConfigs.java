@@ -52,8 +52,10 @@ public class SpringSecurityConfigs {
         http
             .csrf(c -> c.disable())
             .authorizeHttpRequests(requests 
-            -> requests.requestMatchers("/", "/js/**", "/api/auth/login").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN"))
+            -> requests.requestMatchers("/", "/js/**").authenticated()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/secure/**").permitAll())
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")

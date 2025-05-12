@@ -18,6 +18,7 @@ public interface UserRepository {
     List<Users> getUsers(Map<String, String> params); 
     
     Users createUser(Users u);
+    Users createOrUpdate(Users u);
     Users updateUser(Users u);
 
     boolean authenticated(String username, String password);

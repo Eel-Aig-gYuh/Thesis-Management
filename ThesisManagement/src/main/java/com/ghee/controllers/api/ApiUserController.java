@@ -6,13 +6,13 @@ package com.ghee.controllers.api;
 
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
+import java.security.Principal;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author giahu
  */
 @RestController
-@RequestMapping("/api/secure/users")
+@RequestMapping("/api/secure")
 @CrossOrigin
 public class ApiUserController {
     private static final Logger logger = Logger.getLogger(ApiUserController.class.getName());
@@ -37,8 +37,7 @@ public class ApiUserController {
     @Autowired
     private UserService userService;
     
-    @PostMapping("/create")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/users/create")
     public ResponseEntity<?> create(
             @RequestParam Map<String, String> params, 
             @RequestParam(value="avatar") MultipartFile avatar) {
@@ -54,8 +53,7 @@ public class ApiUserController {
         }
     }
     
-    @DeleteMapping("/{userId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/users/{userId}")
     public ResponseEntity<?> delete(@PathVariable(value = "userId") long id){
         logger.log(Level.INFO, "Received request to delete user ID: {0}", id);
         try {
@@ -69,8 +67,7 @@ public class ApiUserController {
         }
     }
     
-    @PutMapping("/{userId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/users/{userId}")
     public ResponseEntity<?> update(
         @PathVariable(value = "userId") long id,
         @RequestParam Map<String, String> params, 
@@ -87,11 +84,21 @@ public class ApiUserController {
         }
     }
     
-    @PutMapping("/{userId}/password")
+    /**
+     *
+     * @param id
+     * @param request
+     * @param principal
+     * @return
+     */
+    @PutMapping("/users/{userId}/password")
     public ResponseEntity<?> changePassword(
             @PathVariable(value = "userId") long id, 
-            @RequestBody PasswordChangeRequest request ) {
+            @RequestBody PasswordChangeRequest request,
+            Principal principal) {
         logger.log(Level.INFO, "Received request to change password for user ID: {0}", id);
+        String username = principal.getName();
+        System.out.println(username);
         try {
             this.userService.changePassword(id, request.getOldPassword(), request.getNewPassword());
             logger.log(Level.INFO, "Password change successfully for user ID: {0}", id);

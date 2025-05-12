@@ -9,7 +9,9 @@ import com.ghee.repositories.ThesisRepository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -104,6 +106,31 @@ public class ThesisRepositoryImpl implements ThesisRepository{
         CriteriaQuery<Theses> q = b.createQuery(Theses.class);
         Root root = q.from(Theses.class);
         q.select(root);
+        
+        if (params != null) {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Lọc theo title
+            String title = params.get("title");
+            if (title != null && !title.isEmpty()) {
+                predicates.add(b.like(root.get("title"), String.format("%%%s%%", title)));
+            }
+            
+            // Lọc theo status
+            String status = params.get("status");
+            if (status != null && !status.isEmpty()) {
+                predicates.add(b.equal(root.get("status"), status));
+            }
+            
+            // Sắp xếp.
+            q.where(predicates.toArray(Predicate[]::new));
+            String order = params.get("order");
+            if ("asc".equalsIgnoreCase(order)) {
+                q.orderBy(b.asc(root.get("id")));
+            } else {
+                q.orderBy(b.desc(root.get("id"))); // mặc định
+            }
+        }
         
         Query query = s.createQuery(q);
         

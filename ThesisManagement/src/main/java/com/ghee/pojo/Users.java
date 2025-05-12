@@ -15,12 +15,14 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -28,7 +30,6 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "users")
-@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Users.findAll", query = "SELECT u FROM Users u"),
     @NamedQuery(name = "Users.findById", query = "SELECT u FROM Users u WHERE u.id = :id"),
@@ -55,8 +56,6 @@ public class Users implements Serializable {
     @Column(name = "username", unique = true)
     private String username;
     @Basic(optional = false)
-    @NotNull
-    @JsonIgnore
     @Size(min = 1, max = 255)
     @Column(name = "password")
     private String password;
@@ -132,6 +131,8 @@ public class Users implements Serializable {
     @JsonIgnore
     private Set<ThesisReviewers> thesisReviewersSet;
    
+    @Transient
+    private MultipartFile file;
     
     public Users() {
     }
@@ -229,7 +230,7 @@ public class Users implements Serializable {
         this.isActive = isActive;
     }
 
-    @XmlTransient
+    
     public Set<CouncilMembers> getCouncilMembersSet() {
         return councilMembersSet;
     }
@@ -238,7 +239,7 @@ public class Users implements Serializable {
         this.councilMembersSet = councilMembersSet;
     }
 
-    @XmlTransient
+    
     public Set<Scores> getScoresSet() {
         return scoresSet;
     }
@@ -247,7 +248,7 @@ public class Users implements Serializable {
         this.scoresSet = scoresSet;
     }
 
-    @XmlTransient
+    
     public Set<Criteria> getCriteriaSet() {
         return criteriaSet;
     }
@@ -256,7 +257,7 @@ public class Users implements Serializable {
         this.criteriaSet = criteriaSet;
     }
 
-    @XmlTransient
+    
     public Set<ThesisFiles> getThesisFilesSet() {
         return thesisFilesSet;
     }
@@ -265,7 +266,7 @@ public class Users implements Serializable {
         this.thesisFilesSet = thesisFilesSet;
     }
 
-    @XmlTransient
+    
     public Set<Councils> getCouncilsSet() {
         return councilsSet;
     }
@@ -274,7 +275,7 @@ public class Users implements Serializable {
         this.councilsSet = councilsSet;
     }
 
-    @XmlTransient
+    
     public Set<Councils> getCouncilsSet1() {
         return councilsSet1;
     }
@@ -283,7 +284,7 @@ public class Users implements Serializable {
         this.councilsSet1 = councilsSet1;
     }
 
-    @XmlTransient
+    
     public Set<ThesisAdvisors> getThesisAdvisorsSet() {
         return thesisAdvisorsSet;
     }
@@ -292,7 +293,7 @@ public class Users implements Serializable {
         this.thesisAdvisorsSet = thesisAdvisorsSet;
     }
 
-    @XmlTransient
+    
     public Set<Theses> getThesesSet() {
         return thesesSet;
     }
@@ -301,7 +302,7 @@ public class Users implements Serializable {
         this.thesesSet = thesesSet;
     }
 
-    @XmlTransient
+    
     public Set<ThesisStudents> getThesisStudentsSet() {
         return thesisStudentsSet;
     }
@@ -310,7 +311,7 @@ public class Users implements Serializable {
         this.thesisStudentsSet = thesisStudentsSet;
     }
 
-    @XmlTransient
+    
     public Set<Notifications> getNotificationsSet() {
         return notificationsSet;
     }
@@ -319,7 +320,7 @@ public class Users implements Serializable {
         this.notificationsSet = notificationsSet;
     }
 
-    @XmlTransient
+    
     public Set<ThesisReviewers> getThesisReviewersSet() {
         return thesisReviewersSet;
     }
@@ -350,6 +351,20 @@ public class Users implements Serializable {
 
     @Override
     public String toString() {
-        return "com.ghee.pojo.Users[ id=" + id + " ]";
+        return String.format("%s", this.getId());
     } 
+
+    /**
+     * @return the file
+     */
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    /**
+     * @param file the file to set
+     */
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
 }

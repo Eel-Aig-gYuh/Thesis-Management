@@ -113,6 +113,41 @@ public class UserServiceImpl implements UserService{
     }
     
     @Override
+    public Users createOrUpdate(Users u){
+        logger.log(Level.INFO, "Creating user with username: {0}", u.getUsername());
+        
+        u.setPassword(this.passEncoder.encode(u.getPassword()));
+        
+        if (u.getId() == null) {
+            u.setIsActive(Boolean.TRUE);
+        } else {
+            u.setIsActive(u.getIsActive());
+        }
+        
+        if (!u.getFile().isEmpty()) {
+            String contentType = u.getFile().getContentType();
+            if (contentType != null && contentType.startsWith("image/")) {
+                try {
+                    logger.log(Level.INFO, "Uploading avatar to Cloudinary for user: {0}", u.getUsername());
+                    Map res = cloudinary.uploader().upload(u.getFile().getBytes(),
+                            ObjectUtils.asMap("resource_type", "auto"));
+                    u.setAvatar(res.get("secure_url").toString());
+                    logger.log(Level.INFO, "New avatar uploaded successfully: {0}", u.getAvatar());
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, "Failed to upload avatar for user: {0}" + u.getUsername(), ex);
+                    throw new RuntimeException("Failed to upload avatar", ex);
+                }
+            } else {
+                throw new IllegalArgumentException("Chỉ được phép upload file hình ảnh!");
+            }
+        }
+        
+        Users createdUser = this.userRepo.createOrUpdate(u);
+        logger.log(Level.INFO, "User created successfully {0}", createdUser.getUsername());
+        return createdUser;
+    }
+    
+    @Override
     public Users createUser(Map<String, String>params, MultipartFile avatar) {
         logger.log(Level.INFO, "Creating user with username: {0}", params.get("username"));
         

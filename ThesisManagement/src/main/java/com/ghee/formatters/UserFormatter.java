@@ -12,8 +12,17 @@ import org.springframework.format.Formatter;
  *
  * @author giahu
  */
-public class UserFormatter {
+public class UserFormatter implements Formatter<Users>{
 
-    
-    
+    @Override
+    public String print(Users u, Locale locale) {
+        return String.valueOf(u.getId());
+    }
+
+    @Override
+    public Users parse(String userId, Locale locale) throws ParseException {
+        Users u = new Users();
+        u.setId(Long.valueOf(userId));
+        return u;
+    }
 }

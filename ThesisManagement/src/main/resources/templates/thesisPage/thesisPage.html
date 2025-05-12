@@ -1,93 +1,73 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title>Trang Quản Trị</title>
+        <title>Quản Trị Khóa Luận</title>
     <th:block th:replace="base :: bootstrap"></th:block>
 </head>
 <body>
     <main class="container">
         <div th:replace="base :: header"></div>
 
-        <ul class="nav nav-tabs nav-justified">
-            <li class="nav-item">
-                <a class="nav-link active" th:href="@{/admin}">Trang chủ</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" th:href="@{/admin/thesis}">Quản lý khóa luận</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link disabled" href="#">Disabled</a>
-            </li>
-        </ul>
-
         <div>
             <h2 class="text-center text-info mt-3">Quản trị khóa luận</h2>
         </div>
 
-        <form th:action="@{/admin/thesis}">
-            <div class="row">
-                <div class="col-sm-3">
-                
+        <form th:action="@{/admin/thesis/}" class="p-3 bg-light rounded shadow-sm">
+            <div class="row g-2 align-items-end">
+                <!-- Lọc theo title -->
+                <div class="col-md-4">
+                    <input type="text" class="form-control" placeholder="Tìm theo tiêu đề..." name="title" th:value="${param.title}">
                 </div>
-                <div class="col-sm-3">
-                
+                <!-- Lọc theo status -->
+                <div class="col-md-3">
+                    <select class="form-select" name="status">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option th:each="s:${status}" th:value="${s}" th:text="${s.displayName}" th:selected="${param.status == s}"></option>
+                    </select>
                 </div>
-                <div class="col-sm-3">
-                    
-                </div>
-                <div class="col-sm-3">
-                    <div class="mb-3 mt-3">
-                        <input type="text" class="form-control" placeholder="Từ khóa..." name="kw">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-1">
-                <a th:href="@{/admin/users}" class="btn btn-info mt-2">Thêm sản phẩm</a>
-            </div>
 
+                <!-- Sắp xếp theo ngày -->
+                <div class="col-md-2">
+                    <select class="form-select" name="order">
+                        <option value="desc" th:selected="${param.order == 'desc'}">Mới nhất</option>
+                        <option value="asc" th:selected="${param.order == 'asc'}">Cũ nhất</option>
+                    </select>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
+                </div>
+                <div class="col-md-2">
+                    <a th:href="@{/create}" class="btn btn-success">+ Thêm Khoá luận</a>
+                </div>  
+            </div>
+        </form>
+        
+        <form th:action="@{/admin/thesis}">
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Username</th>
-                            <th>Firstname</th>
-                            <th>Lastname</th>
-                            <th>Avatar</th>
-                            <th>Email</th>
-                            <th>Major</th>
-                            <th>Role</th>
+                            <th>Id người tạo</th>
+                            <th>Tiêu đề</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="u:${users}">
-                            <td th:text="${u.id}"></td>
-                            <td th:text="${u.username}"></td>
-                            <td th:text="${u.firstname}"></td>
-                            <td th:text="${u.lastname}"></td>
+                        <tr th:each="t:${theses}">
+                            <td th:text="${t.id}"></td>
+                            <td th:text="${t.createdBy}"></td>
+                            <td th:text="${t.title}"></td>
                             <td>
-                                <img th:src="${u.avatar}" 
-                                     alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
+                                <span class="badge" th:classappend="${t.status.equals('REJECTED') ? 'bg-danger' : t.status.equals('REGISTERED') ? 'bg-primary' : t.status.equals('CANCELLED') ? 'bg-warning': t.status.equals('APPROVED') ? 'bg-success' : 'bg-info'}" th:text="${t.status}"></span>
                             </td>
-                            <td th:text="${u.email}"></td>
-                            <td th:text="${u.major}"></td>
+                            <td th:text="${t.createdAt}"></td>
                             <td>
-                                <div class="dropdown">
-                                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" th:text="${u.role}">
-
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li th:each="r:${roles}" class="dropdown-item" th:text="${r.displayName}"></li>
-                                    </ul>
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-danger" th:onclick="'deleteUser(\'' + @{/api/users} + '\', ' + ${u.id} + ')'" >&times;</button>
-                                <a class="btn btn-success" th:href="@{'users/' + ${u.id}}">&#128296;️</a>
+                                <button class="btn btn-danger" th:onclick="'deleteThesis(\'' + @{/api/thesis} + '\', ' + ${t.id} + ')'" >&times;</button>
+                                <a class="btn btn-success" th:href="@{'thesis/' + ${t.id}}">&#128296;️</a>
                             </td>
                         </tr>
                     </tbody>

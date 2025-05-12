@@ -42,14 +42,27 @@ public class AdminUserController {
     
     @GetMapping("/")
     public String userView(Model model, @RequestParam Map<String, String> params) {
-        model.addAttribute("roles", UserRole.values());
         model.addAttribute("users", this.userService.getUsers(params));
         model.addAttribute("activePage", "users");
         return "userPage/userPage";
     }
     
+    @GetMapping("/{userId}")
+    public String userDetailView(Model model, @PathVariable(value = "userId") long id) {
+        model.addAttribute("users", this.userService.getUserById(id));
+        return "userPage/userDetail";
+    }
+    
     @GetMapping("/create")
     public String userCreateView(Model model) {
+        model.addAttribute("users", new Users());
         return "userPage/userDetail";
+    }
+    
+    @PostMapping("/add")
+    public String create(@ModelAttribute(value = "users") Users u) {
+        this.userService.createOrUpdate(u);
+        
+        return "redirect:/admin/users/";
     }
 }
