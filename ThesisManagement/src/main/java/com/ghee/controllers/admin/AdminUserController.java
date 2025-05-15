@@ -10,16 +10,19 @@ import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -41,9 +44,14 @@ public class AdminUserController {
     }
     
     @GetMapping("/")
-    public String userView(Model model, @RequestParam Map<String, String> params) {
+    public String userView(
+            Model model, 
+            @RequestParam Map<String, String> params,
+            @RequestParam(value = "page", defaultValue = "1") int page) {
         model.addAttribute("users", this.userService.getUsers(params));
         model.addAttribute("activePage", "users");
+        model.addAttribute("currentPage", page);
+        
         return "userPage/userPage";
     }
     
@@ -64,5 +72,11 @@ public class AdminUserController {
         this.userService.createOrUpdate(u);
         
         return "redirect:/admin/users/";
+    }
+    
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void userDelete(Model model, @PathVariable(value="userId") long id) {
+        this.userService.deleteUser(id);
     }
 }

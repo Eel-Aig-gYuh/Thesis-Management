@@ -104,6 +104,15 @@ public class UserRepositoryImpl implements UserRepository{
 
         return (Users) q.getSingleResult();
     }
+    
+    @Override
+    public List<Users> getUserByUserRole(String userRole) {
+        Session s = this.factory.getObject().getCurrentSession();
+        Query q = s.createNamedQuery("Users.findByRole", Users.class);
+        q.setParameter("role", userRole);
+        
+        return q.getResultList();
+    }
 
     @Override
     public boolean authenticated(String username, String password) {
@@ -129,6 +138,21 @@ public class UserRepositoryImpl implements UserRepository{
         s.refresh(u);
         
         return u;
+    }
+    
+    @Override
+    public void deleteUser(long id){
+        Session s = this.factory.getObject().getCurrentSession();
+        try {
+            Users u = this.getUserById(id);
+            logger.log(Level.INFO, "Starting transaction for deleting user: {0}", u.getUsername());
+            
+            s.remove(u);
+            
+            logger.log(Level.INFO, "User deleted successfully: {0}", u.getUsername());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user: " + e.getMessage(), e);
+        }
     }
     
     @Override

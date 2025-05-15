@@ -39,11 +39,11 @@
                     <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
                 </div>
                 <div class="col-md-2">
-                    <a th:href="@{/create}" class="btn btn-success">+ Thêm Khoá luận</a>
+                    <a th:href="@{/admin/thesis/create}" class="btn btn-success">+ Thêm Khoá luận</a>
                 </div>  
             </div>
         </form>
-        
+
         <form th:action="@{/admin/thesis}">
             <div class="table-responsive">
                 <table class="table table-bordered">
@@ -67,12 +67,26 @@
                             <td th:text="${t.createdAt}"></td>
                             <td>
                                 <button class="btn btn-danger" th:onclick="'deleteThesis(\'' + @{/api/thesis} + '\', ' + ${t.id} + ')'" >&times;</button>
-                                <a class="btn btn-success" th:href="@{'thesis/' + ${t.id}}">&#128296;️</a>
+                                <a class="btn btn-success" th:href="@{${t.id}}">&#128296;️</a>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <nav th:if="${theses.size() > 0}">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/thesis(page=${currentPage - 1}, kw=${kw})}">Trước</a>
+                    </li>
+                    <li class="page-item">
+                        <span class="page-link">Trang [[${currentPage}]]</span>
+                    </li>
+                    <li class="page-item" th:classappend="${theses.size() < 10} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/thesis(page=${currentPage + 1}, kw=${kw})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
         </form> 
 
         <div th:replace="base :: footer"></div>

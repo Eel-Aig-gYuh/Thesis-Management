@@ -44,6 +44,20 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
+    public Notifications createOrUpdate(Notifications notifications) {
+        if (notifications.getId() == null) {
+            Notifications newNotifications = new Notifications();
+            newNotifications.setUserId(notifications.getUserId());
+            newNotifications.setContent(notifications.getContent());
+            newNotifications.setType(String.valueOf(NotificationType.EMAIL));
+            newNotifications.setStatus(String.valueOf(NotificationStatus.PENDING));
+            newNotifications.setCreatedAt(DateUtils.getTodayWithoutTime());
+        } 
+        
+        return this.notiRepo.createOrUpdate(notifications);
+    }
+    
+    @Override
     public Notifications createNotification(NotificationRequest dto, String username) {
         logger.log(Level.INFO, "Creating notification with content: {0}", dto.getContent());
         
@@ -54,7 +68,7 @@ public class NotificationServiceImpl implements NotificationService{
         newNotifications.setStatus(String.valueOf(NotificationStatus.PENDING));
         newNotifications.setCreatedAt(DateUtils.getTodayWithoutTime());
         
-        Notifications createdNotifications = this.notiRepo.createNotification(newNotifications);
+        Notifications createdNotifications = this.notiRepo.createOrUpdate(newNotifications);
         logger.log(Level.INFO, "Notification created successfully: {0}", createdNotifications.getContent());
         return createdNotifications;
     }

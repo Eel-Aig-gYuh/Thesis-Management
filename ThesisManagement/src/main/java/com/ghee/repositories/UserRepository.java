@@ -16,10 +16,13 @@ public interface UserRepository {
     Users getUserById(long id);
     Users getUserByUsername(String username);
     List<Users> getUsers(Map<String, String> params); 
+    List<Users> getUserByUserRole(String userRole);
     
     Users createUser(Users u);
     Users createOrUpdate(Users u);
     Users updateUser(Users u);
+    
+    void deleteUser(long id);
 
     boolean authenticated(String username, String password);
 }

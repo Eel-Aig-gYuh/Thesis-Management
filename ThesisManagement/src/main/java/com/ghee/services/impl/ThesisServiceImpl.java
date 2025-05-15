@@ -5,6 +5,8 @@
 package com.ghee.services.impl;
 
 import com.ghee.dto.ThesisRequest;
+import com.ghee.dto.ThesisResponse;
+import com.ghee.dto.UserDTO;
 import com.ghee.enums.NotificationStatus;
 import com.ghee.enums.NotificationType;
 import com.ghee.enums.ThesisStatus;
@@ -28,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,17 +56,26 @@ public class ThesisServiceImpl implements ThesisService {
     // ====================== GHEE
     
     @Override
-    public Theses getThesisById(long id) {
-        return this.thesisRepo.getThesisById(id);
+    public ThesisResponse getThesisById(long id) {
+        Theses thesis = this.thesisRepo.getThesisById(id);
+        if (thesis == null) {
+            logger.log(Level.WARNING, "Thesis not found: {0}", id);
+            throw new IllegalArgumentException("Thesis not found");
+        }
+        return mapToResponseThesisDTO(thesis);
     }
 
     @Override
-    public List<Theses> getThese(Map<String, String> params) {
-        return this.thesisRepo.getTheses(params);
+    public Map<String, Object> getThese(Map<String, String> params) {
+        Map<String, Object> result = this.thesisRepo.getTheses(params);
+        List<Theses> theses = (List<Theses>) result.get("theses");
+        result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
+        
+        return result;
     }
-
+    
     @Override
-    public Theses createThesis(ThesisRequest dto, String username) {
+    public ThesisResponse createThesis(ThesisRequest dto, String username) {
         logger.log(Level.INFO, "Creating thesis with title: {0}", dto.getTitle());
         
         // Kiểm tra quyền giáo vụ.
@@ -125,11 +137,11 @@ public class ThesisServiceImpl implements ThesisService {
         saveNotification(createdBy, "Tạo khóa luận: " + thesis.getTitle());
         
         logger.log(Level.INFO, "Thesis created successfully: {0}", createdTheses.getTitle());
-        return createdTheses;
+        return mapToResponseThesisDTO(createdTheses);
     }
 
     @Override
-    public Theses updateThesis(long id, ThesisRequest dto, String username) {
+    public ThesisResponse updateThesis(long id, ThesisRequest dto, String username) {
         logger.log(Level.INFO, "Updating thesis ID: {0}", id);
         
         // Kiểm tra quyền giáo vụ.
@@ -155,11 +167,11 @@ public class ThesisServiceImpl implements ThesisService {
         }
         
         // Cập nhật thông tin
-        if (dto.getTitle() != null && !dto.getTitle().equals(thesis.getTitle())) {
+        if (dto.getTitle() != null) {
             thesis.setTitle(dto.getTitle());
         }
         
-        if (dto.getStatus() != null && !thesis.getStatus().equals(String.valueOf(dto.getStatus()))){
+        if (dto.getStatus() != null){
             thesis.setStatus(String.valueOf(dto.getStatus()));
         }
         
@@ -205,7 +217,7 @@ public class ThesisServiceImpl implements ThesisService {
         saveNotification(updatedBy, "Cập nhật khóa luận: " + thesis.getTitle());
         
         logger.log(Level.INFO, "Thesis updated successfully: {0}", updatedThesis.getTitle());
-        return updatedThesis;
+        return mapToResponseThesisDTO(updatedThesis);
     }
 
     @Override
@@ -228,6 +240,47 @@ public class ThesisServiceImpl implements ThesisService {
         saveNotification(deletedBy, "Đã xóa khóa luận: " + thesis.getTitle());
     }
     
+    private ThesisResponse mapToResponseThesisDTO(Theses thesis) {
+        ThesisResponse dto = new ThesisResponse();
+        dto.setId(thesis.getId());
+        dto.setTitle(thesis.getTitle());
+        dto.setStatus(ThesisStatus.valueOf(thesis.getStatus()));
+        dto.setCreatedAt(thesis.getCreatedAt());
+        
+        // Ánh xạ sinh viên
+        dto.setStudents(thesis.getThesisStudentsSet().stream()
+                .map(assignment -> new UserDTO(
+                        assignment.getStudentId().getId(),
+                        assignment.getStudentId().getFirstname(), 
+                        assignment.getStudentId().getLastname(), 
+                        assignment.getStudentId().getEmail()
+                ))
+                .collect(Collectors.toList())
+        );
+        
+        // Ánh xạ giảng viên hướng dẫn
+        dto.setSupervisors(thesis.getThesisAdvisorsSet().stream()
+                .map(assignment -> new UserDTO(
+                        assignment.getAdvisorId().getId(),
+                        assignment.getAdvisorId().getFirstname(),
+                        assignment.getAdvisorId().getLastname(), 
+                        assignment.getAdvisorId().getEmail()
+                ))
+                .collect(Collectors.toList())
+        );
+        
+        // Ánh xạ createdBy
+        Users createdBy = thesis.getCreatedBy();
+        dto.setCreatedBy(new UserDTO(
+                createdBy.getId(), 
+                createdBy.getFirstname(), 
+                createdBy.getLastname(), 
+                createdBy.getEmail()
+        ));
+        
+        return dto;
+    }
+    
     private void saveNotification(Users user, String content) {
         Notifications n = new Notifications();
         n.setUserId(user);
@@ -236,7 +289,7 @@ public class ThesisServiceImpl implements ThesisService {
         n.setStatus(String.valueOf(NotificationStatus.PENDING));
         n.setType(String.valueOf(NotificationType.EMAIL));
         
-        Notifications newNotification = this.notiRepo.createNotification(n);
+        Notifications newNotification = this.notiRepo.createOrUpdate(n);
         if (newNotification == null) {
             throw new IllegalArgumentException("Failed to create notification for creating thesis: " + content);
         }

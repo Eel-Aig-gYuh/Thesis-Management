@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -39,6 +40,24 @@ public class ThesisRepositoryImpl implements ThesisRepository{
     private Environment env;
 
     // ==================================== GHEE
+    
+    @Override
+    public Theses createOrUpdate(Theses theses) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        if (theses.getId() == null) {
+            logger.log(Level.INFO, "Starting transaction for creating thesis: {0}", theses.getTitle());
+            s.persist(theses);
+            s.flush();
+        }
+        else {
+            logger.log(Level.INFO, "Starting transaction for updating thesis: {0}", theses.getTitle());
+            s.merge(theses);
+        }
+        s.refresh(theses);
+        
+        return theses;
+    }
     
     /**
      * Tạo khóa luận.
@@ -100,9 +119,11 @@ public class ThesisRepositoryImpl implements ThesisRepository{
      * @return 
      */
     @Override
-    public List<Theses> getTheses(Map<String, String> params) {
+    public Map<String, Object> getTheses(Map<String, String> params) {
         Session s = this.factory.getObject().getCurrentSession();
         CriteriaBuilder b = s.getCriteriaBuilder();
+        
+        // lấy danh sách khóa luận.
         CriteriaQuery<Theses> q = b.createQuery(Theses.class);
         Root root = q.from(Theses.class);
         q.select(root);
@@ -143,8 +164,19 @@ public class ThesisRepositoryImpl implements ThesisRepository{
             query.setMaxResults(pageSize);
             query.setFirstResult(start);
         }
+        List<Theses> theses = query.getResultList();
         
-        return query.getResultList();
+        // tính tổng số bản ghi
+        CriteriaQuery<Long> countQuery = b.createQuery(Long.class);
+        countQuery.select(b.count(countQuery.from(Theses.class)));
+        Long totalRecords = s.createQuery(countQuery).getSingleResult();
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("theses", theses);
+        result.put("totalPages", totalPages);
+        
+        return result;
     }
 
     /**

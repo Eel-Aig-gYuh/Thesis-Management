@@ -5,6 +5,7 @@
 package com.ghee.services;
 
 import com.ghee.dto.ThesisRequest;
+import com.ghee.dto.ThesisResponse;
 import com.ghee.pojo.Theses;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +15,10 @@ import java.util.Map;
  * @author giahu
  */
 public interface ThesisService {
-    Theses getThesisById(long id);
-    List<Theses> getThese(Map<String, String> params);
+    ThesisResponse getThesisById(long id);
+    Map<String, Object> getThese(Map<String, String> params);
     
-    Theses createThesis(ThesisRequest dto, String username);
-    Theses updateThesis(long id, ThesisRequest dto, String username);
+    ThesisResponse createThesis(ThesisRequest dto, String username);
+    ThesisResponse updateThesis(long id, ThesisRequest dto, String username);
     void deleteThesis(long id, String username);
 }

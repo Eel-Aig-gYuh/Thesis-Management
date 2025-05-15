@@ -1,0 +1,80 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Quản Trị Khóa Luận</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body>
+    <main class="container">
+        <div th:replace="base :: header"></div>
+
+        <h2 class="text-center text-info mt-1">Quản trị khóa luận</h2>
+
+        <form method="post" th:action="@{${editId == null} ? '/admin/thesis/add': '/admin/thesis/edit/' + ${editId}}" class="was-validated" th:object="${thesisForm}">
+
+            <div class="mb-3 mt-3">
+                <div class="col">
+                    <label for="title">Nhập tiêu đề</label>
+                    <input type="text" class="form-control" placeholder="Nhập tiêu đề của khóa luận..." id="title" th:field="*{title}">
+                </div>
+            </div>
+
+            <div class="mb-3 mt-3"> 
+                <label for="status">Nhập quyền người dùng</label>
+                <select class="form-select" id="status" th:field="*{status}">
+                    <option th:each="s : ${statuses}"
+                            th:value="${s}" 
+                            th:text="${s.displayName}">-- Trạng thái --</option>
+                </select>
+            </div>
+
+            <div class="mb-3 mt-3">
+                <label>-- Chọn giảng viên tối đa (2 giảng viên) --</label>
+                <select multiple class="form-select" name="supervisorIds" required>
+                    <option th:each="g: ${giangViens}"
+                            th:value="${g.id}"
+                            th:text="${g.firstname + ' ' + g.lastname}"></option>
+                </select>
+            </div>
+
+            <div class="mb-3 mt-3">
+                <label>-- Chọn sinh viên thực hiện đề tài --</label>
+                <select multiple class="form-select" name="studentIds" required>
+                    <option th:each="s: ${sinhViens}"
+                            th:value="${s.id}"
+                            th:text="${s.firstname + ' ' + s.lastname}"></option>
+                </select>
+            </div>
+
+            <div class="mb-3 mt-3"> 
+                
+                <button type="submit" class="btn btn-info mt-1">
+                    <span th:if="${editId == null}">Thêm khóa luận</span>
+                    <span th:unless="${editId == null}">Cập nhật khóa luận</span>
+                </button>
+            </div>
+
+            <h4 class="mt-4">Danh sách khóa luận hiện có</h4>
+            <table class="table table-bordered mt-2">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tiêu đề</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="t : ${theses}">
+                        <td th:text="${t.id}"></td>
+                        <td th:text="${t.title}"></td>
+                        <td th:text="${t.status}"></td>
+                        <td th:text="${#dates.format(t.createdAt, 'dd/MM/yyyy')}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <div th:replace="base :: footer"></div>
+    </main>
+</body>
+</html>

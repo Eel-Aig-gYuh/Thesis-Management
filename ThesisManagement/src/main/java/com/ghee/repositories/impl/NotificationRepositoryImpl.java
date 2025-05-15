@@ -72,38 +72,23 @@ public class NotificationRepositoryImpl implements NotificationRepository{
     }
 
     @Override
-    public Notifications createNotification(Notifications n) {
+    public Notifications createOrUpdate(Notifications n) {
         Session s = this.factory.getObject().getCurrentSession();
-        try {
-            logger.log(Level.INFO, "Starting transaction for creating notification: {0}", n.getId());
-            
+        
+        if (n.getId() == null) {
+            logger.log(Level.INFO, "Starting transaction for creating notification: {0}", n.getContent());
             s.persist(n);
             s.flush();
-            s.refresh(n);
-            
-            logger.log(Level.INFO, "Notification created successfully: {0}", n.getId());
-            return n;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create notification: " + e.getMessage(), e);
         }
-    }
-
-    @Override
-    public Notifications updateNotification(Notifications n) {
-        Session s = this.factory.getObject().getCurrentSession();
-        try {
-            logger.log(Level.INFO, "Starting transaction for updating notification: {0}", n.getId());
-            
+        else {
+            logger.log(Level.INFO, "Starting transaction for updating notification: {0}", n.getContent());
             s.merge(n);
-            s.refresh(n);
-            
-            logger.log(Level.INFO, "Notification updated successfully: {0}", n.getId());
-            return n;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update notification: " + e.getMessage(), e);
         }
+        s.refresh(n);
+        
+        return n;
     }
-
+    
     @Override
     public void deleteNotification(long id) {
         Session s = this.factory.getObject().getCurrentSession();

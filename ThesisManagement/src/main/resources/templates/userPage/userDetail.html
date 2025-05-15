@@ -15,7 +15,7 @@
                 <label for="avatar">Nhập ảnh đại diện</label>
                 <input type="file" class="form-control" accept="image/*" th:field="*{file}">
 
-                <img src="${users.avatar}" th:if="${users.id != null}"
+                <img th:src="${users.avatar}" th:if="${users.id != null}"
                      alt="Avatar Logo" style="width:70px;" class="rounded-pill"> 
             </div>
             
@@ -61,6 +61,14 @@
                     <option th:each="m : ${majors}"
                             th:value="${m}" 
                             th:text="${m.displayName}">Major</option>
+                </select>
+            </div>
+            
+            <div class="mb-3 mt-3">
+                <label for="isActive">Trạng thái hoạt động</label>
+                <select class="form-select" th:field="*{isActive}">
+                    <option th:value="true">Đang hoạt động</option>
+                    <option th:value="false">Đã khóa</option>
                 </select>
             </div>
 

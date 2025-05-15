@@ -69,6 +69,11 @@ public class UserServiceImpl implements UserService{
     public Users getUserByUsername(String username) {
         return this.userRepo.getUserByUsername(username);
     }
+    
+    @Override
+    public List<Users> getUserByUserRole(String userRole) {
+        return this.userRepo.getUserByUserRole(userRole);
+    }
 
     @Override
     public boolean authenticated(String username, String password) {
@@ -83,46 +88,10 @@ public class UserServiceImpl implements UserService{
     // ========================== GHEE
 
     @Override
-    public String login(String username, String password) {
-        logger.log(Level.INFO, "Processing login for username: {0}", username);
-        
-        Users u = this.userRepo.getUserByUsername(username);
-        if (u == null) {
-            logger.log(Level.WARNING, "User not found: {0}", username);
-            throw new IllegalArgumentException("Invalid username or password");
-        }
-        if (!u.getIsActive()) {
-            logger.log(Level.WARNING, "User account is inactive: {0}", username);
-            throw new IllegalArgumentException("Account is inactive");
-        }
-        if (!passEncoder.matches(password, u.getPassword())) {
-            logger.log(Level.WARNING, "Incorrect password for user: {0}", username);
-            throw new IllegalArgumentException("Invalid username or password");
-        }
-        
-        logger.log(Level.INFO, "Generating JWT token for user: {0}", username);
-        try {
-            String token = JwtUtils.generateToken(username);
-            logger.log(Level.INFO, "Login successful for user: {0}", username);
-            
-            return token;
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Failed to generate JWT token for user: {0}", username);
-            throw new IllegalArgumentException("Failed generate JWT token");
-        }
-    }
-    
-    @Override
     public Users createOrUpdate(Users u){
         logger.log(Level.INFO, "Creating user with username: {0}", u.getUsername());
         
         u.setPassword(this.passEncoder.encode(u.getPassword()));
-        
-        if (u.getId() == null) {
-            u.setIsActive(Boolean.TRUE);
-        } else {
-            u.setIsActive(u.getIsActive());
-        }
         
         if (!u.getFile().isEmpty()) {
             String contentType = u.getFile().getContentType();
@@ -231,9 +200,8 @@ public class UserServiceImpl implements UserService{
             throw new IllegalArgumentException("User not found");
         }
         
-        u.setIsActive(Boolean.FALSE);
-        this.userRepo.updateUser(u);
-        logger.log(Level.INFO, "User deleted (deactivated) successfully{0}", u.getUsername());
+        this.userRepo.deleteUser(id);
+        logger.log(Level.INFO, "User deleted successfully {0}", u.getIsActive());
     } 
     
     @Override

@@ -17,6 +17,7 @@ public interface NotificationService {
     Notifications getNotificationById(long id);
     List<Notifications> getNotificationses(Map<String, String> params);
     
+    Notifications createOrUpdate(Notifications notifications);
     Notifications createNotification(NotificationRequest dto, String username);
     Notifications updateNotification(long id, NotificationRequest dto, String username);
     void deleteNotification(long id);

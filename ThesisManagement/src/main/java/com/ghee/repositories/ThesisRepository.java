@@ -14,7 +14,9 @@ import java.util.Map;
  */
 public interface ThesisRepository {
     Theses getThesisById(long id);
-    List<Theses> getTheses(Map<String, String> params);
+    Map<String, Object> getTheses(Map<String, String> params);
+    
+    Theses createOrUpdate(Theses theses);
     
     Theses createThesis(Theses theses);
     Theses updateThesis(Theses theses);

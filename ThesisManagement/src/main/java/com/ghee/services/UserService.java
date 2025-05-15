@@ -18,15 +18,14 @@ public interface UserService extends UserDetailsService {
     Users getUserById(long id);
     Users getUserByUsername(String username);
     List<Users> getUsers(Map<String, String> params);
+    List<Users> getUserByUserRole(String userRole);
     
-    Users createUser(Map<String, String>params, MultipartFile avatar);
     Users createOrUpdate(Users u);
-    
-    Users updateUser(long id, Map<String, String>params, MultipartFile avatar);
-    void changePassword(long id, String oldPass, String newPass);
-    
     void deleteUser(long id);
     
-    String login(String username, String password);
+    void changePassword(long id, String oldPass, String newPass);
     boolean authenticated(String username, String password);
+    
+    Users createUser(Map<String, String>params, MultipartFile avatar);
+    Users updateUser(long id, Map<String, String>params, MultipartFile avatar);
 }
