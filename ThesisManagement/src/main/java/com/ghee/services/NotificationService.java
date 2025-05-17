@@ -6,6 +6,7 @@ package com.ghee.services;
 
 import com.ghee.dto.NotificationRequest;
 import com.ghee.pojo.Notifications;
+import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +18,8 @@ public interface NotificationService {
     Notifications getNotificationById(long id);
     List<Notifications> getNotificationses(Map<String, String> params);
     
-    Notifications createOrUpdate(Notifications notifications);
     Notifications createNotification(NotificationRequest dto, String username);
-    Notifications updateNotification(long id, NotificationRequest dto, String username);
-    void deleteNotification(long id);
+    
+    void sendNotification(Users user, String content);
+    void sendBulkNotification(List<Users> recipients, String content);
 }

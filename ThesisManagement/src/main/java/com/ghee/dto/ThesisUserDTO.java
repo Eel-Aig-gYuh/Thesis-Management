@@ -4,21 +4,25 @@
  */
 package com.ghee.dto;
 
+import java.util.Date;
+
 /**
  * Mục đích trả về thông tin người dùng trong phản hồi.
  * @author giahu
  */
-public class UserDTO {
+public class ThesisUserDTO {
     private Long id;
     private String firstname;
     private String lastname;
     private String email;
+    private Date registeredAt;
 
-    public UserDTO(Long id, String firstname, String lastname, String email) {
+    public ThesisUserDTO(Long id, String firstname, String lastname, String email, Date registeredAt) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
         this.email = email;
+        this.registeredAt = registeredAt;
     }
     
     /**
@@ -75,6 +79,20 @@ public class UserDTO {
      */
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    /**
+     * @return the registeredAt
+     */
+    public Date getRegisteredAt() {
+        return registeredAt;
+    }
+
+    /**
+     * @param registeredAt the registeredAt to set
+     */
+    public void setRegisteredAt(Date registeredAt) {
+        this.registeredAt = registeredAt;
     }
     
     

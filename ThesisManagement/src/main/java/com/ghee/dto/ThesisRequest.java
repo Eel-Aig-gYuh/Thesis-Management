@@ -14,6 +14,7 @@ import java.util.List;
  */
 public class ThesisRequest {
     @NotNull private String title;
+    private String semester;
     @NotNull private List<Long> studentIds;
     @NotNull private List<Long> supervisorIds;
     private ThesisStatus status;
@@ -73,4 +74,19 @@ public class ThesisRequest {
     public void setStatus(ThesisStatus status) {
         this.status = status;
     }
+
+    /**
+     * @return the semester
+     */
+    public String getSemester() {
+        return semester;
+    }
+
+    /**
+     * @param semester the semester to set
+     */
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+    
 }

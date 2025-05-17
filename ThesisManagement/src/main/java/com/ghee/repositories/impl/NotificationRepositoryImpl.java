@@ -5,6 +5,7 @@
 package com.ghee.repositories.impl;
 
 import com.ghee.pojo.Notifications;
+import com.ghee.pojo.Users;
 import com.ghee.repositories.NotificationRepository;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -105,5 +106,6 @@ public class NotificationRepositoryImpl implements NotificationRepository{
             throw new RuntimeException("Failed to delete notification: " + e.getMessage(), e);
         }
     }
+
     
 }

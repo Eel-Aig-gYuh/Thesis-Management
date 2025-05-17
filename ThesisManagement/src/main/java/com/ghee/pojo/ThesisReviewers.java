@@ -20,6 +20,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
+import static java.util.Objects.hash;
 
 /**
  *
@@ -89,24 +90,44 @@ public class ThesisReviewers implements Serializable {
         this.reviewerId = reviewerId;
     }
 
+//    @Override
+//    public int hashCode() {
+//        int hash = 0;
+//        hash += (id != null ? id.hashCode() : 0);
+//        return hash;
+//    }
+//
+//    @Override
+//    public boolean equals(Object object) {
+//        // TODO: Warning - this method won't work in the case the id fields are not set
+//        if (!(object instanceof ThesisReviewers)) {
+//            return false;
+//        }
+//        ThesisReviewers other = (ThesisReviewers) object;
+//        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+//            return false;
+//        }
+//        return true;
+//    }
+    
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return hash(thesisId, reviewerId);
     }
 
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
+        if (this == object) {
+            return true;
+        }
         if (!(object instanceof ThesisReviewers)) {
             return false;
         }
-        ThesisReviewers other = (ThesisReviewers) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        ThesisReviewers that = (ThesisReviewers) object;
+        return thesisId != null && reviewerId != null
+                && thesisId.equals(that.thesisId)
+                && reviewerId.equals(that.reviewerId);
     }
 
     @Override

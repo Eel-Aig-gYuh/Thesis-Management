@@ -5,6 +5,7 @@
 package com.ghee.repositories;
 
 import com.ghee.pojo.Notifications;
+import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
 

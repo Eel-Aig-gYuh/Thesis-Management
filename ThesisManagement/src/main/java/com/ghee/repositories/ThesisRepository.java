@@ -5,6 +5,7 @@
 package com.ghee.repositories;
 
 import com.ghee.pojo.Theses;
+import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
 
@@ -23,4 +24,5 @@ public interface ThesisRepository {
     void deleteThesis(long id);
     
     boolean existsByTitle(String title);
+    long countReviewAssignmentsByUserAndSemester(Users user, String semester);
 }

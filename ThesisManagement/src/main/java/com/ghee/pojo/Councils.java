@@ -48,17 +48,34 @@ public class Councils implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+    
+    @Size(max = 255)
+    @Column(name = "name")
+    private String name;
+    
     @Column(name = "defense_date")
     @Temporal(TemporalType.DATE)
     private Date defenseDate;
+    
     @Size(max = 255)
     @Column(name = "defense_location")
     private String defenseLocation;
+    
+    @Size(max = 10)
+    @Column(name = "status")
+    private String status;
+    
     @Column(name = "is_locked")
     private Boolean isLocked;
+    
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    
+    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    @ManyToOne
+    @JsonIgnore
+    private Users createdBy;
     
     @OneToMany(mappedBy = "councilId")
     @JsonIgnore
@@ -68,16 +85,7 @@ public class Councils implements Serializable {
     @JsonIgnore
     private Set<CouncilTheses> councilThesesSet;
     
-    @JoinColumn(name = "chairman_id", referencedColumnName = "id")
-    @ManyToOne
-    @JsonIgnore
-    private Users chairmanId;
     
-    @JoinColumn(name = "secretary_id", referencedColumnName = "id")
-    @ManyToOne
-    @JsonIgnore
-    private Users secretaryId;
-
     public Councils() {
     }
 
@@ -143,22 +151,50 @@ public class Councils implements Serializable {
         this.councilThesesSet = councilThesesSet;
     }
 
-    public Users getChairmanId() {
-        return chairmanId;
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
     }
 
-    public void setChairmanId(Users chairmanId) {
-        this.chairmanId = chairmanId;
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Users getSecretaryId() {
-        return secretaryId;
+    /**
+     * @return the status
+     */
+    public String getStatus() {
+        return status;
     }
 
-    public void setSecretaryId(Users secretaryId) {
-        this.secretaryId = secretaryId;
+    /**
+     * @param status the status to set
+     */
+    public void setStatus(String status) {
+        this.status = status;
     }
 
+    /**
+     * @return the createdBy
+     */
+    public Users getCreatedBy() {
+        return createdBy;
+    }
+
+    /**
+     * @param createdBy the createdBy to set
+     */
+    public void setCreatedBy(Users createdBy) {
+        this.createdBy = createdBy;
+    }
+    
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -183,5 +219,4 @@ public class Councils implements Serializable {
     public String toString() {
         return "com.ghee.pojo.Councils[ id=" + id + " ]";
     }
-    
 }

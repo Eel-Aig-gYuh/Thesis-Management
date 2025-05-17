@@ -21,6 +21,7 @@ CREATE TABLE theses (
     
     created_by BIGINT,
     
+    semester VARCHAR(50),
     title VARCHAR(255) NOT NULL,
     status ENUM('DRAFT', 'REGISTERED', 'APPROVED', 'REJECTED', 'CANCELLED') DEFAULT 'DRAFT',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -86,16 +87,16 @@ CREATE TABLE thesis_files (
 CREATE TABLE councils (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     
-    chairman_id BIGINT,
-    secretary_id BIGINT,
+    created_by BIGINT,
     
+    name VARCHAR(255),
     defense_date DATE,
     defense_location VARCHAR(255),
+    status ENUM('SCHEDULED', 'COMPLETED', 'CANCELED') DEFAULT 'SCHEDULED',
     is_locked BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (chairman_id) REFERENCES users(id),
-    FOREIGN KEY (secretary_id) REFERENCES users(id)
+    FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
 -- Bảng council_members: Thành viên hội đồng.

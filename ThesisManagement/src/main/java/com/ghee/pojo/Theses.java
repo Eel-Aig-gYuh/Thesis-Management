@@ -6,6 +6,7 @@ package com.ghee.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -48,6 +49,10 @@ public class Theses implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+    
+    @Size(max = 50)
+    @Column(name = "semester")
+    private String semester;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
@@ -72,7 +77,7 @@ public class Theses implements Serializable {
     @JsonIgnore
     private Set<ThesisFiles> thesisFilesSet;
     
-    @OneToMany(mappedBy = "thesisId")
+    @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ThesisAdvisors> thesisAdvisorsSet;
     
@@ -81,11 +86,11 @@ public class Theses implements Serializable {
     @JsonIgnore
     private Users createdBy;
     
-    @OneToMany(mappedBy = "thesisId")
+    @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ThesisStudents> thesisStudentsSet;
     
-    @OneToMany(mappedBy = "thesisId")
+    @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ThesisReviewers> thesisReviewersSet;
 
@@ -218,6 +223,20 @@ public class Theses implements Serializable {
     @Override
     public String toString() {
         return "com.ghee.pojo.Theses[ id=" + id + " ]";
+    }
+
+    /**
+     * @return the semester
+     */
+    public String getSemester() {
+        return semester;
+    }
+
+    /**
+     * @param semester the semester to set
+     */
+    public void setSemester(String semester) {
+        this.semester = semester;
     }
     
 }

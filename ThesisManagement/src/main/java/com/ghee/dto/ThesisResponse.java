@@ -15,13 +15,15 @@ import java.util.List;
 public class ThesisResponse {
     private Long id;
     private String title;
+    private String semester;
     private ThesisStatus status;
-    private List<UserDTO> students;
-    private List<UserDTO> supervisors;
-    private UserDTO createdBy;
+    private List<ThesisUserDTO> students;
+    private List<ThesisUserDTO> supervisors;
+    private List<ThesisUserDTO> reviewers;
+    private ThesisUserDTO createdBy;
     private Date createdAt;
 
-    public ThesisResponse(Long id, String title, ThesisStatus status, List<UserDTO> students, List<UserDTO> supervisors, UserDTO createdBy, Date createdAt) {
+    public ThesisResponse(Long id, String title, ThesisStatus status, List<ThesisUserDTO> students, List<ThesisUserDTO> supervisors, ThesisUserDTO createdBy, Date createdAt) {
         this.id = id;
         this.title = title;
         this.status = status;
@@ -80,42 +82,42 @@ public class ThesisResponse {
     /**
      * @return the students
      */
-    public List<UserDTO> getStudents() {
+    public List<ThesisUserDTO> getStudents() {
         return students;
     }
 
     /**
      * @param students the students to set
      */
-    public void setStudents(List<UserDTO> students) {
+    public void setStudents(List<ThesisUserDTO> students) {
         this.students = students;
     }
 
     /**
      * @return the supervisors
      */
-    public List<UserDTO> getSupervisors() {
+    public List<ThesisUserDTO> getSupervisors() {
         return supervisors;
     }
 
     /**
      * @param supervisors the supervisors to set
      */
-    public void setSupervisors(List<UserDTO> supervisors) {
+    public void setSupervisors(List<ThesisUserDTO> supervisors) {
         this.supervisors = supervisors;
     }
 
     /**
      * @return the createdBy
      */
-    public UserDTO getCreatedBy() {
+    public ThesisUserDTO getCreatedBy() {
         return createdBy;
     }
 
     /**
      * @param createdBy the createdBy to set
      */
-    public void setCreatedBy(UserDTO createdBy) {
+    public void setCreatedBy(ThesisUserDTO createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -131,6 +133,34 @@ public class ThesisResponse {
      */
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /**
+     * @return the reviewers
+     */
+    public List<ThesisUserDTO> getReviewers() {
+        return reviewers;
+    }
+
+    /**
+     * @param reviewers the reviewers to set
+     */
+    public void setReviewers(List<ThesisUserDTO> reviewers) {
+        this.reviewers = reviewers;
+    }
+
+    /**
+     * @return the semester
+     */
+    public String getSemester() {
+        return semester;
+    }
+
+    /**
+     * @param semester the semester to set
+     */
+    public void setSemester(String semester) {
+        this.semester = semester;
     }
     
     

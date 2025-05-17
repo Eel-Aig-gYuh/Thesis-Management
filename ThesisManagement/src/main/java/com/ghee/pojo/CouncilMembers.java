@@ -39,14 +39,17 @@ public class CouncilMembers implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 9)
     @Column(name = "role")
     private String role;
+    
     @JoinColumn(name = "council_id", referencedColumnName = "id")
     @ManyToOne
     private Councils councilId;
+    
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     @ManyToOne
     private Users memberId;

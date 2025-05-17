@@ -6,12 +6,11 @@ package com.ghee.controllers.api;
 
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
+import com.ghee.dto.ThesisReviewerDTO;
+import com.ghee.dto.ThesisStatusDTO;
 import com.ghee.enums.UserRole;
-import com.ghee.pojo.Theses;
 import com.ghee.services.ThesisService;
 import com.ghee.services.UserService;
-import com.ghee.validators.UserValidator;
-import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -72,7 +72,30 @@ public class ApiThesisController {
             logger.log(Level.INFO, "Thesis created successfully: {0}", thesis.getTitle());
             return new ResponseEntity<>(thesis, HttpStatus.CREATED);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to create thesis: {0}", e.getMessage());
+            logger.log(Level.SEVERE, "Failed to create thesis: ", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @PostMapping("/{id}/assign-reviewer")
+    public ResponseEntity<?> assignReviewers(
+            @PathVariable(value = "id") long id, 
+            @RequestBody ThesisReviewerDTO dto, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to assign reviewers for thesis ID: {0}", id);
+        
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to assign thesis", username);
+            return new ResponseEntity<>("Only GIAOVU role can assign thesis", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            ThesisResponse response = this.thesisService.assignReviewers(id, dto, username);
+            logger.log(Level.INFO, "Reviewers assigned successfully for thesis: {0}", response.getTitle());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to assigned reviewers: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
@@ -145,6 +168,52 @@ public class ApiThesisController {
         }
     }
     
+    @PutMapping("/{id}/reviewers") 
+    public ResponseEntity<?> updateReviewers(
+            @PathVariable(value = "id") long id, 
+            @RequestBody ThesisReviewerDTO dto, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to update reviewers for thesis ID: {0}", id);
+
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to update reviewers", username);
+            return new ResponseEntity<>("Only GIAOVU role can update reviewers", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            ThesisResponse response = this.thesisService.updateReviewers(id, dto, username);
+            logger.log(Level.INFO, "Reviewers updated successfully for thesis: {0}", response.getTitle());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to update reviewers: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateThesisStatus(
+            @PathVariable(value = "id") long id, 
+            @RequestBody ThesisStatusDTO dto, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to update status for thesis ID: {0}", id);
+        
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to create thesis", username);
+            return new ResponseEntity<>("Only GIAOVU role can update thesis", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            ThesisResponse response = this.thesisService.updateThesisStatus(id, dto, username);
+            logger.log(Level.INFO, "Thesis status updated successfully: {0}", response.getTitle());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to update thesis status: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
             @PathVariable(value = "id") long id, 
@@ -163,6 +232,30 @@ public class ApiThesisController {
             return new ResponseEntity<>("Thesis deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to delete thesis: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @DeleteMapping("/{id}/reviewers")
+    public ResponseEntity<?> removeReviewers(
+            @PathVariable(value = "id") long id, 
+            @RequestBody ThesisReviewerDTO dto, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to remove reviewers for thesis ID: {0}", id);
+
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to delete reviewers", username);
+            return new ResponseEntity<>("Only GIAOVU role can delete reviewers", HttpStatus.FORBIDDEN);
+        }
+        
+
+        try {
+            ThesisResponse response = this.thesisService.removeReviewers(id, dto, username);
+            logger.log(Level.INFO, "Reviewers removed successfully for thesis: {0}", response.getTitle());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to remove reviewers: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }

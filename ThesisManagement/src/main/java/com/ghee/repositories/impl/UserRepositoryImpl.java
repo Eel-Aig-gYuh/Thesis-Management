@@ -179,6 +179,7 @@ public class UserRepositoryImpl implements UserRepository{
             logger.log(Level.INFO, "Starting transaction for updating user: {0}", u.getUsername());
             
             s.merge(u);
+            s.flush();
             s.refresh(u);
         
             logger.log(Level.INFO, "User updated successfully: {0}", u.getUsername());
