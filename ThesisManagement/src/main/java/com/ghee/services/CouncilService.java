@@ -17,4 +17,7 @@ public interface CouncilService {
     Map<String, Object> getCouncils(Map<String, String> params);
     
     CouncilResponse createCouncil(CouncilResquest dto, String username);
+    CouncilResponse updateCouncil(long id, CouncilResquest dto, String username);
+    
+    void deleteCouncil(long id, String username);
 }

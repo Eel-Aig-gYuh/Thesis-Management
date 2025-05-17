@@ -17,4 +17,5 @@ public interface CouncilRepository {
     Councils createOrUpdateCouncil(Councils council);
     Councils getCouncilById(long id);
     
+    void deleteCouncil(long id);
 }

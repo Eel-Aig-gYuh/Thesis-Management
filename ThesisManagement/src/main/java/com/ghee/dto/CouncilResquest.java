@@ -15,10 +15,24 @@ import java.util.List;
 public class CouncilResquest {
     private String name;
     private Date defenseDate;
+    private String defenseLocation;
     private CouncilStatus status;
+    private boolean isLocked;
     private List<CouncilMemberDTO> members;
     private List<Long> thesisIds;
 
+    public CouncilResquest() {
+    }
+
+    public CouncilResquest(String name, Date defenseDate, CouncilStatus status, List<CouncilMemberDTO> members, List<Long> thesisIds) {
+        this.name = name;
+        this.defenseDate = defenseDate;
+        this.status = status;
+        this.members = members;
+        this.thesisIds = thesisIds;
+    }
+
+    
     /**
      * @return the name
      */
@@ -87,5 +101,33 @@ public class CouncilResquest {
      */
     public void setThesisIds(List<Long> thesisIds) {
         this.thesisIds = thesisIds;
+    }
+
+    /**
+     * @return the defenseLocation
+     */
+    public String getDefenseLocation() {
+        return defenseLocation;
+    }
+
+    /**
+     * @param defenseLocation the defenseLocation to set
+     */
+    public void setDefenseLocation(String defenseLocation) {
+        this.defenseLocation = defenseLocation;
+    }
+
+    /**
+     * @return the isLocked
+     */
+    public boolean isIsLocked() {
+        return isLocked;
+    }
+
+    /**
+     * @param isLocked the isLocked to set
+     */
+    public void setIsLocked(boolean isLocked) {
+        this.isLocked = isLocked;
     }
 }

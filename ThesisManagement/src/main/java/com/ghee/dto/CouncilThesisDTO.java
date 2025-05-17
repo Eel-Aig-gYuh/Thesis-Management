@@ -15,6 +15,15 @@ public class CouncilThesisDTO {
     private String title;
     private ThesisStatus status;
 
+    public CouncilThesisDTO() {
+    }
+
+    public CouncilThesisDTO(long id, String title, ThesisStatus status) {
+        this.id = id;
+        this.title = title;
+        this.status = status;
+    }
+    
     /**
      * @return the id
      */

@@ -5,7 +5,6 @@
 package com.ghee.dto;
 
 import com.ghee.enums.CouncilStatus;
-import com.ghee.pojo.CouncilTheses;
 import java.util.Date;
 import java.util.List;
 
@@ -17,12 +16,28 @@ public class CouncilResponse {
     private long id;
     private String name;
     private Date defenseDate;
+    private String defenseLocation;
     private CouncilStatus status;
+    private boolean isLocked;
     private List<CouncilMemberResponseDTO> members;
     private List<CouncilThesisDTO> theses;
     private ThesisUserDTO createdBy;
     private Date createdAt;
 
+    public CouncilResponse() {
+    }
+
+    public CouncilResponse(long id, String name, Date defenseDate, CouncilStatus status, List<CouncilMemberResponseDTO> members, List<CouncilThesisDTO> theses, ThesisUserDTO createdBy, Date createdAt) {
+        this.id = id;
+        this.name = name;
+        this.defenseDate = defenseDate;
+        this.status = status;
+        this.members = members;
+        this.theses = theses;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+    }
+    
     /**
      * @return the id
      */
@@ -133,6 +148,34 @@ public class CouncilResponse {
      */
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /**
+     * @return the defenseLocation
+     */
+    public String getDefenseLocation() {
+        return defenseLocation;
+    }
+
+    /**
+     * @param defenseLocation the defenseLocation to set
+     */
+    public void setDefenseLocation(String defenseLocation) {
+        this.defenseLocation = defenseLocation;
+    }
+
+    /**
+     * @return the isLocked
+     */
+    public boolean isIsLocked() {
+        return isLocked;
+    }
+
+    /**
+     * @param isLocked the isLocked to set
+     */
+    public void setIsLocked(boolean isLocked) {
+        this.isLocked = isLocked;
     }
     
     

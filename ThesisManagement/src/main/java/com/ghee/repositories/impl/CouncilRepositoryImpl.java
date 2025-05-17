@@ -121,5 +121,21 @@ public class CouncilRepositoryImpl implements CouncilRepository{
         Session s = this.factory.getObject().getCurrentSession();
         return s.get(Councils.class, id);
     }
+
+    @Override
+    public void deleteCouncil(long id) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        try {
+            Councils c = s.get(Councils.class, id);
+            
+            if (c != null) {
+                s.remove(c);
+                s.refresh(c);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete thesis: " + e.getMessage(), e);
+        }
+    }
     
 }

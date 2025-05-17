@@ -15,6 +15,15 @@ public class CouncilMemberResponseDTO {
     private ThesisUserDTO user;
     private CouncilMemberRole role;
 
+    public CouncilMemberResponseDTO(ThesisUserDTO user, CouncilMemberRole role) {
+        this.user = user;
+        this.role = role;
+    }
+
+    public CouncilMemberResponseDTO() {
+    }
+    
+    
     /**
      * @return the user
      */

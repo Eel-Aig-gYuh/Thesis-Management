@@ -14,6 +14,15 @@ public class CouncilMemberDTO {
     private Long userId;
     private CouncilMemberRole role;
 
+    public CouncilMemberDTO(Long userId, CouncilMemberRole role) {
+        this.userId = userId;
+        this.role = role;
+    }
+
+    public CouncilMemberDTO() {
+    }
+
+    
     /**
      * @return the userId
      */
