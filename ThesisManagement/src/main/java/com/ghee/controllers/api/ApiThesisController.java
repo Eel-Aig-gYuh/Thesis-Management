@@ -4,11 +4,15 @@
  */
 package com.ghee.controllers.api;
 
+import com.ghee.dto.AverageScoreResponse;
+import com.ghee.dto.ScoreRequest;
+import com.ghee.dto.ScoreResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
 import com.ghee.dto.ThesisStatusDTO;
 import com.ghee.enums.UserRole;
+import com.ghee.services.ScoreService;
 import com.ghee.services.ThesisService;
 import com.ghee.services.UserService;
 import java.security.Principal;
@@ -46,6 +50,9 @@ public class ApiThesisController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ScoreService scoreService;
     
     
     /**
@@ -100,6 +107,29 @@ public class ApiThesisController {
         }
     }
     
+    @PostMapping("/{id}/score")
+    public ResponseEntity<?> scoreThesis(
+            @PathVariable(value = "id") long id, 
+            @RequestBody ScoreRequest dto, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to score thesis ID: {0}", id);
+        
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIANGVIEN))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to score thesis", username);
+            return new ResponseEntity<>("Only GIANGVIEN role can score thesis", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            ScoreResponse response = this.scoreService.createScore(id, dto, username);
+            logger.log(Level.INFO, "Thesis scored successfully: {0}", id);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to score reviewers: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
     @GetMapping("/")
     public ResponseEntity<?> getTheses(
             @RequestParam(name = "page", defaultValue = "1") int page, 
@@ -141,6 +171,27 @@ public class ApiThesisController {
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to get thesis: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("/{id}/average-score")
+    public ResponseEntity<?> getAverageScore(
+            @PathVariable(value = "id") long id, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get average score for thesis ID: {0}", id);
+        
+        String username = principal.getName();
+        if (username == null) {
+            logger.log(Level.WARNING, "Unauthorized access to get average score");
+            return new ResponseEntity<>("Unauthorized", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            AverageScoreResponse response = this.thesisService.getAverageScore(id, username);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get average score: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }

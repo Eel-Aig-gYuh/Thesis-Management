@@ -4,21 +4,27 @@
  */
 package com.ghee.repositories.impl;
 
+import com.ghee.enums.CouncilMemberRole;
+import com.ghee.pojo.Scores;
 import com.ghee.pojo.Theses;
 import com.ghee.pojo.Users;
+import com.ghee.repositories.ScoreRepository;
 import com.ghee.repositories.ThesisRepository;
-import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -39,8 +45,12 @@ public class ThesisRepositoryImpl implements ThesisRepository {
 
     @Autowired
     private LocalSessionFactoryBean factory;
+    
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private ScoreRepository scoreRepo;
 
     // ==================================== GHEE
     @Override
@@ -227,16 +237,54 @@ public class ThesisRepositoryImpl implements ThesisRepository {
     public long countReviewAssignmentsByUserAndSemester(Users user, String semester) {
         Session s = this.factory.getObject().getCurrentSession();
 
-        Query q = s.createQuery(
+        Query<Long> q = s.createQuery(
                 "SELECT COUNT(*) FROM ThesisReviewers tr "
-                + "JOIN Theses t ON tr.thesisId.id = t.id "
-                + "WHERE tr.reviewerId.id = :userId AND t.semester = :semester",
+                + "WHERE tr.reviewerId.id = :userId AND tr.thesisId.semester = :semester",
                 Long.class
         );
         q.setParameter("userId", user.getId());
         q.setParameter("semester", semester);
+        return q.getSingleResult();
+    }
 
-        Number result = (Number) q.getSingleResult();
-        return result.longValue();
+    @Override
+    public void updateAverageScore(long id) {
+        Session s = this.factory.getObject().getCurrentSession();
+
+        Theses thesis = s.get(Theses.class, id);
+        if (thesis == null) {
+            throw new IllegalArgumentException("Thesis not found");
+        }
+        
+        List<Scores> scores = this.scoreRepo.getScoreByThesisAndRole(id, Arrays.asList(CouncilMemberRole.REVIEWER, CouncilMemberRole.MEMBER));
+
+        if (scores.isEmpty()) {
+            logger.log(Level.INFO, "No scores found for thesis ID: {0}, setting average score to null", thesis.getId());
+            thesis.setAverageScore(null);
+            s.merge(thesis);
+            return;
+        }
+        
+        Map<Long, List<Scores>> scoresByMember = scores.stream()
+            .collect(Collectors.groupingBy(score -> score.getCouncilMemberId().getId()));
+
+        double totalAverage = 0.0;
+        int memberCount = 0;
+
+        for (List<Scores> memberScores : scoresByMember.values()) {
+            double totalScore = memberScores.stream()
+                .map(Scores::getScore)
+                .mapToDouble(BigDecimal::doubleValue)
+                .sum();
+            totalAverage += totalScore;
+            memberCount++;
+        }
+
+        double averageScore = memberCount > 0 ? totalAverage / memberCount : 0.0;
+        logger.log(Level.INFO, "Calculated average score for thesis ID: {0}: {1}", new Object[]{thesis.getId(), averageScore});
+
+        thesis.setAverageScore(BigDecimal.valueOf(averageScore));
+        s.merge(thesis);
+
     }
 }

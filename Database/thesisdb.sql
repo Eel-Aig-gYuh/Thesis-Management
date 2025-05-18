@@ -23,6 +23,7 @@ CREATE TABLE theses (
     
     semester VARCHAR(50),
     title VARCHAR(255) NOT NULL,
+    average_score DECIMAL(4,2),
     status ENUM('DRAFT', 'REGISTERED', 'APPROVED', 'REJECTED', 'CANCELLED') DEFAULT 'DRAFT',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     

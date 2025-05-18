@@ -4,18 +4,22 @@
  */
 package com.ghee.services.impl;
 
+import com.ghee.dto.AverageScoreResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
 import com.ghee.dto.ThesisStatusDTO;
 import com.ghee.dto.ThesisUserDTO;
+import com.ghee.enums.CouncilMemberRole;
 import com.ghee.enums.ThesisStatus;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Scores;
 import com.ghee.pojo.Theses;
 import com.ghee.pojo.ThesisAdvisors;
 import com.ghee.pojo.ThesisReviewers;
 import com.ghee.pojo.ThesisStudents;
 import com.ghee.pojo.Users;
+import com.ghee.repositories.ScoreRepository;
 import com.ghee.repositories.ThesisRepository;
 import com.ghee.repositories.UserRepository;
 import com.ghee.services.MailService;
@@ -24,7 +28,9 @@ import com.ghee.services.ThesisService;
 import com.ghee.utils.DateUtils;
 import com.ghee.validators.ThesisValidatior;
 import com.ghee.validators.UserValidator;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +62,9 @@ public class ThesisServiceImpl implements ThesisService {
 
     @Autowired
     private UserRepository userRepo;
+    
+    @Autowired 
+    private ScoreRepository scoreRepo;
 
     @Autowired
     private NotificationService notiService;
@@ -536,6 +545,75 @@ public class ThesisServiceImpl implements ThesisService {
         return mapToResponseThesisDTO(updatedThesis);
     }
 
+    
+    @Override
+    public AverageScoreResponse getAverageScore(long thesisId, String username) {
+        logger.log(Level.INFO, "Fetching average score for thesis ID: {0}", thesisId);
+        
+        Users user = this.userRepo.getUserByUsername(username);
+        if (user == null) {
+            logger.log(Level.WARNING, "User not found: {0}", username);
+            throw new IllegalArgumentException("User not found");
+        }
+        
+        Theses thesis = this.thesisRepo.getThesisById(thesisId);
+        if (thesis == null) {
+            logger.log(Level.WARNING, "Thesis not found: {0}", thesisId);
+            throw new IllegalArgumentException("Thesis not found");
+        }
+        
+        boolean isAuthorized = user.getRole().equals(UserRole.ROLE_GIAOVU.name()) ||
+            thesis.getThesisStudentsSet().stream().anyMatch(ts -> ts.getStudentId().getId() == user.getId());
+        if (!isAuthorized) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view average score for thesis {1}",
+                new Object[]{username, thesisId});
+            throw new IllegalArgumentException("User is not authorized to view average score");
+        }
+        
+        double averageScore = thesis.getAverageScore() != null ? thesis.getAverageScore().doubleValue() : 0.0;
+
+        List<Scores> scores = this.scoreRepo.getScoreByThesisAndRole(thesisId, Arrays.asList(CouncilMemberRole.REVIEWER, CouncilMemberRole.MEMBER));
+        List<AverageScoreResponse.MemberScoreDTO> memberScores = new ArrayList<>();
+        
+        if (!scores.isEmpty()) {
+            Map<Long, List<Scores>> scoresByMember = scores.stream()
+                .collect(Collectors.groupingBy(score -> score.getCouncilMemberId().getId()));
+
+            for (Map.Entry<Long, List<Scores>> entry : scoresByMember.entrySet()) {
+                Users member = this.userRepo.getUserById(entry.getKey());
+                List<Scores> memberScoresList = entry.getValue();
+
+                double totalScore = memberScoresList.stream()
+                    .map(Scores::getScore)
+                    .mapToDouble(BigDecimal::doubleValue)
+                    .sum();
+
+                List<AverageScoreResponse.CriteriaScoreDTO> criteriaScores = memberScoresList.stream()
+                    .map(score -> new AverageScoreResponse.CriteriaScoreDTO(
+                        score.getCriteriaId().getId(),
+                        score.getCriteriaId().getName(),
+                        score.getCriteriaId().getMaxScore(),
+                        score.getScore()
+                    ))
+                    .collect(Collectors.toList());
+
+                memberScores.add(new AverageScoreResponse.MemberScoreDTO(
+                    new ThesisUserDTO(
+                        member.getId(),
+                        member.getFirstname(),
+                        member.getLastname(),
+                        member.getEmail(),
+                        null
+                    ),
+                    BigDecimal.valueOf(totalScore),
+                    criteriaScores
+                ));
+            }
+        }
+
+        logger.log(Level.INFO, "Average score retrieved for thesis ID: {0}: {1}", new Object[]{thesisId, averageScore});
+        return new AverageScoreResponse(BigDecimal.valueOf(averageScore), memberScores);
+    }
 
     private ThesisResponse mapToResponseThesisDTO(Theses thesis) {
         ThesisResponse dto = new ThesisResponse();
@@ -544,6 +622,7 @@ public class ThesisServiceImpl implements ThesisService {
         dto.setSemester(thesis.getSemester());
         dto.setStatus(ThesisStatus.valueOf(thesis.getStatus()));
         dto.setCreatedAt(thesis.getCreatedAt());
+        dto.setAverageScore(thesis.getAverageScore());
 
         // Ánh xạ sinh viên
         dto.setStudents(thesis.getThesisStudentsSet().stream()
@@ -593,5 +672,6 @@ public class ThesisServiceImpl implements ThesisService {
 
         return dto;
     }
+
 
 }

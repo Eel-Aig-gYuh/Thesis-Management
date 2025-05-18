@@ -5,6 +5,7 @@
 package com.ghee.dto;
 
 import com.ghee.enums.ThesisStatus;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -22,8 +23,9 @@ public class ThesisResponse {
     private List<ThesisUserDTO> reviewers;
     private ThesisUserDTO createdBy;
     private Date createdAt;
+    private BigDecimal averageScore;
 
-    public ThesisResponse(Long id, String title, ThesisStatus status, List<ThesisUserDTO> students, List<ThesisUserDTO> supervisors, ThesisUserDTO createdBy, Date createdAt) {
+    public ThesisResponse(Long id, String title, ThesisStatus status, List<ThesisUserDTO> students, List<ThesisUserDTO> supervisors, ThesisUserDTO createdBy, Date createdAt, BigDecimal averageScore) {
         this.id = id;
         this.title = title;
         this.status = status;
@@ -31,6 +33,7 @@ public class ThesisResponse {
         this.supervisors = supervisors;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
+        this.averageScore = averageScore;
     }
 
     public ThesisResponse() {
@@ -161,6 +164,20 @@ public class ThesisResponse {
      */
     public void setSemester(String semester) {
         this.semester = semester;
+    }
+
+    /**
+     * @return the averageScore
+     */
+    public BigDecimal getAverageScore() {
+        return averageScore;
+    }
+
+    /**
+     * @param averageScore the averageScore to set
+     */
+    public void setAverageScore(BigDecimal averageScore) {
+        this.averageScore = averageScore;
     }
     
     

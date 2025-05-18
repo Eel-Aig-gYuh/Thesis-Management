@@ -21,6 +21,8 @@ public interface ThesisRepository {
     
     Theses createThesis(Theses theses);
     Theses updateThesis(Theses theses);
+    void updateAverageScore(long id);
+    
     void deleteThesis(long id);
     
     boolean existsByTitle(String title);

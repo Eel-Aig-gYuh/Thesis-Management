@@ -25,6 +25,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
@@ -58,6 +59,11 @@ public class Theses implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "title")
     private String title;
+    
+    @Basic(optional = false)
+    @Column(name = "average_score")
+    private BigDecimal averageScore;
+    
     @Size(max = 10)
     @Column(name = "status")
     private String status;
@@ -237,6 +243,20 @@ public class Theses implements Serializable {
      */
     public void setSemester(String semester) {
         this.semester = semester;
+    }
+
+    /**
+     * @return the averageScore
+     */
+    public BigDecimal getAverageScore() {
+        return averageScore;
+    }
+
+    /**
+     * @param averageScore the averageScore to set
+     */
+    public void setAverageScore(BigDecimal averageScore) {
+        this.averageScore = averageScore;
     }
     
 }

@@ -4,6 +4,7 @@
  */
 package com.ghee.services;
 
+import com.ghee.dto.AverageScoreResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
@@ -19,6 +20,7 @@ import java.util.Map;
 public interface ThesisService {
     ThesisResponse getThesisById(long id);
     Map<String, Object> getThese(Map<String, String> params);
+    AverageScoreResponse getAverageScore(long thesisId, String username);
     
     ThesisResponse assignReviewers(long id, ThesisReviewerDTO dto, String username);
     ThesisResponse removeReviewers(long id, ThesisReviewerDTO dto, String username);

@@ -103,13 +103,6 @@ public class Users implements Serializable {
     @JsonIgnore
     private Set<ThesisFiles> thesisFilesSet;
     
-    @OneToMany(mappedBy = "chairmanId")
-    @JsonIgnore
-    private Set<Councils> councilsSet;
-    
-    @OneToMany(mappedBy = "secretaryId")
-    @JsonIgnore
-    private Set<Councils> councilsSet1;
     
     @OneToMany(mappedBy = "advisorId")
     @JsonIgnore
@@ -265,25 +258,6 @@ public class Users implements Serializable {
     public void setThesisFilesSet(Set<ThesisFiles> thesisFilesSet) {
         this.thesisFilesSet = thesisFilesSet;
     }
-
-    
-    public Set<Councils> getCouncilsSet() {
-        return councilsSet;
-    }
-
-    public void setCouncilsSet(Set<Councils> councilsSet) {
-        this.councilsSet = councilsSet;
-    }
-
-    
-    public Set<Councils> getCouncilsSet1() {
-        return councilsSet1;
-    }
-
-    public void setCouncilsSet1(Set<Councils> councilsSet1) {
-        this.councilsSet1 = councilsSet1;
-    }
-
     
     public Set<ThesisAdvisors> getThesisAdvisorsSet() {
         return thesisAdvisorsSet;
