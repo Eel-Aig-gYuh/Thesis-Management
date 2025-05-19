@@ -4,7 +4,11 @@
  */
 package com.ghee.services.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.ghee.dto.AverageScoreResponse;
+import com.ghee.dto.ThesisFileRequest;
+import com.ghee.dto.ThesisFileResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
@@ -16,6 +20,7 @@ import com.ghee.enums.UserRole;
 import com.ghee.pojo.Scores;
 import com.ghee.pojo.Theses;
 import com.ghee.pojo.ThesisAdvisors;
+import com.ghee.pojo.ThesisFiles;
 import com.ghee.pojo.ThesisReviewers;
 import com.ghee.pojo.ThesisStudents;
 import com.ghee.pojo.Users;
@@ -28,6 +33,7 @@ import com.ghee.services.ThesisService;
 import com.ghee.utils.DateUtils;
 import com.ghee.validators.ThesisValidatior;
 import com.ghee.validators.UserValidator;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +49,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -71,6 +78,9 @@ public class ThesisServiceImpl implements ThesisService {
     
     @Autowired
     private MailService mailService;
+    
+    @Autowired
+    private Cloudinary cloudinary;
 
     // ====================== GHEE
     @Override
@@ -614,6 +624,63 @@ public class ThesisServiceImpl implements ThesisService {
         logger.log(Level.INFO, "Average score retrieved for thesis ID: {0}: {1}", new Object[]{thesisId, averageScore});
         return new AverageScoreResponse(BigDecimal.valueOf(averageScore), memberScores);
     }
+    
+    
+    @Override
+    public ThesisFileResponse uploadThesisFile(ThesisFileRequest dto, String username) {
+        logger.log(Level.INFO, "Uploading thesis file for thesis ID: {0} by user: {1}", new Object[]{dto.getThesisId(), username});
+
+        Users student = this.userRepo.getUserByUsername(username);
+        if (student == null || student.getRole().equals(UserRole.ROLE_SINHVIEN.name())) {
+            logger.log(Level.WARNING, "User {0} is not authorized to upload thesis file", username);
+            throw new IllegalArgumentException("Only SINHVIEN role can upload thesis file");
+        }
+
+        Theses thesis = this.thesisRepo.getThesisById(dto.getThesisId());
+        if (thesis == null) {
+            logger.log(Level.WARNING, "Thesis not found: {0}", dto.getThesisId());
+            throw new IllegalArgumentException("Thesis not found");
+        }
+
+        boolean isStudentOfThesis = thesis.getThesisStudentsSet().stream()
+            .anyMatch(ts -> ts.getStudentId().getId().equals(student.getId()));
+        if (!isStudentOfThesis) {
+            logger.log(Level.WARNING, "User {0} is not a student of thesis {1}", new Object[]{username, dto.getThesisId()});
+            throw new IllegalArgumentException("User is not a student of this thesis");
+        }
+
+        MultipartFile file = dto.getFile();
+        if (file == null || file.isEmpty()) {
+            logger.log(Level.WARNING, "No file provided for upload");
+            throw new IllegalArgumentException("File is required");
+        }
+        
+        try {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "raw",
+                "folder", "thesis_files"
+            ));
+
+            String fileUrl = (String) uploadResult.get("secure_url");
+            String fileName = file.getOriginalFilename();
+
+            ThesisFiles thesisFile = new ThesisFiles(fileUrl, fileName, DateUtils.getTodayWithoutTime(), thesis, student);
+            ThesisFiles savedFile = this.thesisRepo.createOrUpdate(thesisFile);
+
+            logger.log(Level.INFO, "Thesis file uploaded successfully: {0}", fileName);
+            return new ThesisFileResponse(
+                savedFile.getId(),
+                savedFile.getThesisId().getId(),
+                savedFile.getStudentId().getId(),
+                savedFile.getFileUrl(),
+                savedFile.getFileName(),
+                savedFile.getSubmittedAt()
+            );
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to upload file to Cloudinary: {0}", e.getMessage());
+            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+        }
+    }
 
     private ThesisResponse mapToResponseThesisDTO(Theses thesis) {
         ThesisResponse dto = new ThesisResponse();
@@ -672,6 +739,5 @@ public class ThesisServiceImpl implements ThesisService {
 
         return dto;
     }
-
 
 }

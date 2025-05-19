@@ -5,6 +5,7 @@
 package com.ghee.repositories;
 
 import com.ghee.pojo.Theses;
+import com.ghee.pojo.ThesisFiles;
 import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
@@ -16,14 +17,17 @@ import java.util.Map;
 public interface ThesisRepository {
     Theses getThesisById(long id);
     Map<String, Object> getTheses(Map<String, String> params);
+    List<Theses> findThesisByYear(String year);
     
     Theses createOrUpdate(Theses theses);
     
     Theses createThesis(Theses theses);
     Theses updateThesis(Theses theses);
     void updateAverageScore(long id);
-    
     void deleteThesis(long id);
+    
+    ThesisFiles createOrUpdate (ThesisFiles thesisFiles);
+    ThesisFiles getThesisFileById(long id);
     
     boolean existsByTitle(String title);
     long countReviewAssignmentsByUserAndSemester(Users user, String semester);

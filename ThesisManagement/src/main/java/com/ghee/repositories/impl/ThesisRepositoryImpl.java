@@ -7,6 +7,7 @@ package com.ghee.repositories.impl;
 import com.ghee.enums.CouncilMemberRole;
 import com.ghee.pojo.Scores;
 import com.ghee.pojo.Theses;
+import com.ghee.pojo.ThesisFiles;
 import com.ghee.pojo.Users;
 import com.ghee.repositories.ScoreRepository;
 import com.ghee.repositories.ThesisRepository;
@@ -286,5 +287,44 @@ public class ThesisRepositoryImpl implements ThesisRepository {
         thesis.setAverageScore(BigDecimal.valueOf(averageScore));
         s.merge(thesis);
 
+    }
+
+    @Override
+    public ThesisFiles createOrUpdate(ThesisFiles thesisFiles) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        if (thesisFiles.getId() == null) {
+            s.persist(thesisFiles);
+        }
+        else {
+            s.merge(thesisFiles);
+        }
+        s.flush();
+        return thesisFiles;
+    }
+
+    @Override
+    public ThesisFiles getThesisFileById(long id) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        return s.get(ThesisFiles.class, id);
+    }
+
+    @Override
+    public List<Theses> findThesisByYear(String year) {
+        Session s = factory.getObject().getCurrentSession();
+        StringBuilder hql = new StringBuilder("FROM Theses t WHERE 1=1");
+        if (year != null && !year.isEmpty()) {
+            hql.append(" AND t.semester LIKE :year");
+        }
+
+        org.hibernate.query.Query<Theses> query = s.createQuery(hql.toString(), Theses.class);
+        if (year != null && !year.isEmpty()) {
+            query.setParameter("year", year + "%");
+        }
+
+        List<Theses> theses = query.list();
+        logger.log(Level.INFO, "Found {0} theses for year: {1}", new Object[]{theses.size(), year});
+        return theses;
     }
 }

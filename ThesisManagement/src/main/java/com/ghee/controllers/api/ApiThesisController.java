@@ -7,6 +7,8 @@ package com.ghee.controllers.api;
 import com.ghee.dto.AverageScoreResponse;
 import com.ghee.dto.ScoreRequest;
 import com.ghee.dto.ScoreResponse;
+import com.ghee.dto.ThesisFileRequest;
+import com.ghee.dto.ThesisFileResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
@@ -26,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -126,6 +129,30 @@ public class ApiThesisController {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to score reviewers: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @PostMapping("/{id}/upload-file")
+    public ResponseEntity<?> uploadThesisFile(
+            @PathVariable(value = "id") long id, 
+            @ModelAttribute ThesisFileRequest dto, 
+            Principal principal){
+        logger.log(Level.INFO, "Received request to upload file for thesis ID: {0}", id);
+
+        String username = principal.getName();
+        if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_SINHVIEN.name())) {
+            logger.log(Level.WARNING, "User {0} is not authorized to upload thesis file", username);
+            return new ResponseEntity<>("Only SINHVIEN role can upload thesis file", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            dto.setThesisId(id);
+            ThesisFileResponse response = this.thesisService.uploadThesisFile(dto, username);
+            logger.log(Level.INFO, "Thesis file uploaded successfully for thesis ID: {0}", id);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to upload thesis file: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }

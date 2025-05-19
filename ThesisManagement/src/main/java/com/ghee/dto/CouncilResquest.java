@@ -17,7 +17,6 @@ public class CouncilResquest {
     private Date defenseDate;
     private String defenseLocation;
     private CouncilStatus status;
-    private boolean isLocked;
     private List<CouncilMemberDTO> members;
     private List<Long> thesisIds;
 
@@ -117,17 +116,5 @@ public class CouncilResquest {
         this.defenseLocation = defenseLocation;
     }
 
-    /**
-     * @return the isLocked
-     */
-    public boolean isIsLocked() {
-        return isLocked;
-    }
-
-    /**
-     * @param isLocked the isLocked to set
-     */
-    public void setIsLocked(boolean isLocked) {
-        this.isLocked = isLocked;
-    }
+    
 }

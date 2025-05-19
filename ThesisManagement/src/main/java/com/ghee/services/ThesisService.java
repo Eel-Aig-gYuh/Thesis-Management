@@ -5,6 +5,8 @@
 package com.ghee.services;
 
 import com.ghee.dto.AverageScoreResponse;
+import com.ghee.dto.ThesisFileRequest;
+import com.ghee.dto.ThesisFileResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
@@ -29,6 +31,8 @@ public interface ThesisService {
     ThesisResponse createThesis(ThesisRequest dto, String username);
     ThesisResponse updateThesis(long id, ThesisRequest dto, String username);
     ThesisResponse updateThesisStatus(long id, ThesisStatusDTO dto, String username);
+    
+    ThesisFileResponse uploadThesisFile(ThesisFileRequest dto, String username);
     
     void deleteThesis(long id, String username);
 }

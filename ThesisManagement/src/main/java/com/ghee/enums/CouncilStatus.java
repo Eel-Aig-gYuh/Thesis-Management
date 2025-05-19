@@ -10,7 +10,8 @@ package com.ghee.enums;
  */
 public enum CouncilStatus {
     SCHEDULED("Dự kiến"),
-    COMPLETED("Đã khóa"),
+    COMPLETED("Đã hoàn thành"),
+    LOCKED("Đã khóa"),
     CANCELED("Đã hoãn");
     
     private final String displayName;

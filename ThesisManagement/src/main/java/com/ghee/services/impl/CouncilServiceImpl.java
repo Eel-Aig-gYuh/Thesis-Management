@@ -18,11 +18,13 @@ import com.ghee.pojo.CouncilMembers;
 import com.ghee.pojo.CouncilTheses;
 import com.ghee.pojo.Councils;
 import com.ghee.pojo.Theses;
+import com.ghee.pojo.ThesisStudents;
 import com.ghee.pojo.Users;
 import com.ghee.repositories.CouncilRepository;
 import com.ghee.repositories.ThesisRepository;
 import com.ghee.repositories.UserRepository;
 import com.ghee.services.CouncilService;
+import com.ghee.services.MailService;
 import com.ghee.services.NotificationService;
 import com.ghee.utils.DateUtils;
 import com.ghee.validators.UserValidator;
@@ -66,6 +68,9 @@ public class CouncilServiceImpl implements CouncilService {
     
     @Autowired
     private NotificationService notiService;
+    
+    @Autowired
+    private MailService mailService;
     
     @Override
     public CouncilResponse getCouncilById(long id) {
@@ -123,7 +128,6 @@ public class CouncilServiceImpl implements CouncilService {
         council.setDefenseDate(dto.getDefenseDate());
         council.setDefenseLocation(dto.getDefenseLocation());
         council.setStatus(dto.getStatus() != null ? dto.getStatus().name(): CouncilStatus.SCHEDULED.name());
-        council.setIsLocked(dto.isIsLocked());
         council.setCreatedBy(createdBy);
         council.setCreatedAt(DateUtils.getTodayWithoutTime());
         
@@ -204,7 +208,7 @@ public class CouncilServiceImpl implements CouncilService {
             throw new IllegalArgumentException("Council not found");
         }
         
-        if (council.getIsLocked()) {
+        if (council.getStatus().equals(CouncilStatus.LOCKED.name())) {
             logger.log(Level.WARNING, "Council {0} is locked and cannot be updated", id);
             throw new IllegalArgumentException("Council is locked");
         }
@@ -246,7 +250,7 @@ public class CouncilServiceImpl implements CouncilService {
         if (dto.getStatus() != null) {
             council.setStatus(dto.getStatus().name());
         }
-        council.setIsLocked(dto.isIsLocked());
+        
         
         // cập nhật thành viên.
         if (dto.getMembers() != null) {
@@ -334,13 +338,59 @@ public class CouncilServiceImpl implements CouncilService {
             throw new IllegalArgumentException("Council not found");
         }
 
-        if (council.getIsLocked()) {
+        if (council.getStatus().equals(CouncilStatus.LOCKED.name())) {
             logger.log(Level.WARNING, "Council {0} is locked and cannot be deleted", id);
             throw new IllegalArgumentException("Council is locked");
         }
 
         this.councilRepo.deleteCouncil(id);
         logger.log(Level.INFO, "Council deleted successfully: {0}", id);
+    }
+    
+    @Override
+    public CouncilResponse lockCouncil(long id, String username) {
+    logger.log(Level.INFO, "Locking council ID: {0}", id);
+
+        Users lockedBy = this.userRepo.getUserByUsername(username);
+        if (lockedBy == null || !lockedBy.getRole().equals(UserRole.ROLE_GIAOVU.name())) {
+            logger.log(Level.WARNING, "User {0} is not authorized to lock council", username);
+            throw new IllegalArgumentException("Only GIAOVU role can lock council");
+        }
+
+        Councils council = this.councilRepo.getCouncilById(id);
+        if (council == null) {
+            logger.log(Level.WARNING, "Council not found: {0}", id);
+            throw new IllegalArgumentException("Council not found");
+        }
+
+        if (council.getStatus().equals(CouncilStatus.LOCKED.name())) {
+            logger.log(Level.WARNING, "Council {0} is already locked", id);
+            throw new IllegalArgumentException("Council is already locked");
+        }
+
+        council.setStatus(CouncilStatus.LOCKED.name());
+        Councils lockedCouncil = this.councilRepo.createOrUpdateCouncil(council);
+        
+        // Send email notifications to students
+        for (CouncilTheses ct : council.getCouncilThesesSet()) {
+            Theses thesis = ct.getThesisId();
+            double averageScore = thesis.getAverageScore() != null ? thesis.getAverageScore().doubleValue() : 0.0;
+            for (ThesisStudents ts : thesis.getThesisStudentsSet()) {
+                Users student = ts.getStudentId();
+                String subject = "Thông báo điểm trung bình khóa luận";
+                String content = String.format(
+                    "Kính gửi %s %s,\n\n" +
+                    "Điểm trung bình chính thức của khóa luận \"%s\" là: %.2f.\n" +
+                    "Cảm ơn bạn đã hoàn thành khóa luận.\n\n" +
+                    "Trân trọng,\nBan Giáo vụ",
+                    student.getFirstname(), student.getLastname(), thesis.getTitle(), averageScore
+                );
+                this.mailService.sendEmail(student.getEmail(), subject, content);
+            }
+        }
+        
+        logger.log(Level.INFO, "Council locked successfully: {0}", id);
+        return mapToResponseDTO(lockedCouncil);
     }
     
     private CouncilResponse mapToResponseDTO(Councils council) {
@@ -350,7 +400,6 @@ public class CouncilServiceImpl implements CouncilService {
         dto.setDefenseDate(council.getDefenseDate());
         dto.setDefenseLocation(council.getDefenseLocation());
         dto.setStatus(CouncilStatus.valueOf(council.getStatus()));
-        dto.setIsLocked(council.getIsLocked());
         dto.setCreatedAt(council.getCreatedAt());
         
         dto.setMembers(council.getCouncilMembersSet().stream()
@@ -387,5 +436,4 @@ public class CouncilServiceImpl implements CouncilService {
         return dto;
     }
 
-    
 }

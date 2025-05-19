@@ -38,7 +38,6 @@ import java.util.Set;
     @NamedQuery(name = "Councils.findById", query = "SELECT c FROM Councils c WHERE c.id = :id"),
     @NamedQuery(name = "Councils.findByDefenseDate", query = "SELECT c FROM Councils c WHERE c.defenseDate = :defenseDate"),
     @NamedQuery(name = "Councils.findByDefenseLocation", query = "SELECT c FROM Councils c WHERE c.defenseLocation = :defenseLocation"),
-    @NamedQuery(name = "Councils.findByIsLocked", query = "SELECT c FROM Councils c WHERE c.isLocked = :isLocked"),
     @NamedQuery(name = "Councils.findByCreatedAt", query = "SELECT c FROM Councils c WHERE c.createdAt = :createdAt")})
 public class Councils implements Serializable {
 
@@ -64,9 +63,6 @@ public class Councils implements Serializable {
     @Size(max = 10)
     @Column(name = "status")
     private String status;
-    
-    @Column(name = "is_locked")
-    private Boolean isLocked;
     
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
@@ -115,14 +111,6 @@ public class Councils implements Serializable {
 
     public void setDefenseLocation(String defenseLocation) {
         this.defenseLocation = defenseLocation;
-    }
-
-    public Boolean getIsLocked() {
-        return isLocked;
-    }
-
-    public void setIsLocked(Boolean isLocked) {
-        this.isLocked = isLocked;
     }
 
     public Date getCreatedAt() {

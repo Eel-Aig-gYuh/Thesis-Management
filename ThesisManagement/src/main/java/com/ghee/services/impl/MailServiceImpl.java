@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -120,5 +121,22 @@ public class MailServiceImpl implements MailService {
             Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
         mailSender.send(message);
+    }
+
+    @Override
+    public void sendEmail(String to, String subject, String content) {
+        logger.log(Level.INFO, "Sending email to: {0}, subject: {1}", new Object[]{to, subject});
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, false);
+            mailSender.send(message);
+            logger.log(Level.INFO, "Email sent successfully to: {0}", to);
+        } catch (MessagingException | MailException e) {
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
+        }
     }
 }

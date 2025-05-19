@@ -93,8 +93,7 @@ CREATE TABLE councils (
     name VARCHAR(255),
     defense_date DATE,
     defense_location VARCHAR(255),
-    status ENUM('SCHEDULED', 'COMPLETED', 'CANCELED') DEFAULT 'SCHEDULED',
-    is_locked BOOLEAN DEFAULT FALSE,
+    status ENUM('SCHEDULED', 'COMPLETED', 'LOCKED', 'CANCELED') DEFAULT 'SCHEDULED',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (created_by) REFERENCES users(id)

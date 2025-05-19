@@ -66,6 +66,28 @@ public class ApiCouncilController {
         }
     }
     
+    @PostMapping("/{id}/lock") 
+    public ResponseEntity<?> lockCouncil(
+            @PathVariable(value = "id") long id, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to lock council ID: {0}", id);
+
+        String username = principal.getName();
+        if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_GIAOVU.name())) {
+            logger.log(Level.WARNING, "User {0} is not authorized to lock council", username);
+            return new ResponseEntity<>("Only GIAOVU role can lock council", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            CouncilResponse response = councilService.lockCouncil(id, username);
+            logger.log(Level.INFO, "Council locked successfully: {0}", id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to lock council: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable(value = "id") long id, 

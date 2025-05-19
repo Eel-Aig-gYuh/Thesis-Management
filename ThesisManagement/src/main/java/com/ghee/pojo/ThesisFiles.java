@@ -77,6 +77,16 @@ public class ThesisFiles implements Serializable {
         this.fileName = fileName;
     }
 
+    public ThesisFiles(String fileUrl, String fileName, Date submittedAt, Theses thesisId, Users studentId) {
+        this.fileUrl = fileUrl;
+        this.fileName = fileName;
+        this.submittedAt = submittedAt;
+        this.thesisId = thesisId;
+        this.studentId = studentId;
+    }
+    
+    
+
     public Long getId() {
         return id;
     }

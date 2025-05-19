@@ -14,6 +14,7 @@ import com.ghee.repositories.UserRepository;
 import com.ghee.services.MailService;
 import com.ghee.services.NotificationService;
 import com.ghee.utils.DateUtils;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -126,5 +127,6 @@ public class NotificationServiceImpl implements NotificationService {
         // Cập nhật lại trạng thái sau khi gửi
         notifications.forEach(notiRepo::createOrUpdate);
     }
+
 
 }

@@ -14,4 +14,5 @@ import java.util.List;
 public interface MailService {
     void sendNotificationEmail(Users recipient, String content);
     void sendEmailToUsers(List<Users> users, String content);
+    void sendEmail(String to, String subject, String content);
 }

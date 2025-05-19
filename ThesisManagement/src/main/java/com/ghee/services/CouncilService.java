@@ -19,5 +19,7 @@ public interface CouncilService {
     CouncilResponse createCouncil(CouncilResquest dto, String username);
     CouncilResponse updateCouncil(long id, CouncilResquest dto, String username);
     
+    CouncilResponse lockCouncil(long id, String username);
+    
     void deleteCouncil(long id, String username);
 }
