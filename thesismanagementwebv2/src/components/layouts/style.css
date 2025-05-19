@@ -1,0 +1,21 @@
+.curved-header {
+  background-color: #D79922;
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+  padding-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.curved-navbar {
+  background-color: transparent !important;
+}
+
+.nav-link-custom {
+  font-weight: 500;
+  margin: 0 10px;
+  color: #000 !important;
+}
+
+.nav-link-custom.active {
+  border-bottom: 3px solid #D79922;
+}
