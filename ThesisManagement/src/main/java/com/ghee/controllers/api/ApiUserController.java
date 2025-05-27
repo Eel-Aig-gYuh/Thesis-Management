@@ -4,9 +4,12 @@
  */
 package com.ghee.controllers.api;
 
+import com.ghee.enums.UserRole;
 import com.ghee.pojo.Users;
 import com.ghee.services.UserService;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -36,6 +40,38 @@ public class ApiUserController {
     
     @Autowired
     private UserService userService;
+    
+    @GetMapping("/users/")
+    public ResponseEntity<?> getUsers( 
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "role", required = false) String role,
+            @RequestParam(name = "firstname", required = false) String firstname,
+            @RequestParam(name = "lastname", required = false) String lastname,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get user, page: {0}", page);
+        
+        String username = principal.getName();
+        if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view user ", username);
+            return new ResponseEntity<>("Only GIAOVU role can view user ", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            if (role != null && !role.isEmpty()) params.put("role", role);
+            if (firstname != null && !firstname.isEmpty()) params.put("firstname", firstname);
+            if (lastname != null && !lastname.isEmpty()) params.put("lastname", lastname);
+            
+            Map<String, Object> response = this.userService.getAllUsers(params);
+            logger.log(Level.INFO, "User created successfully: {0}");
+        
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get user: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
     
     @PostMapping("/users/create")
     public ResponseEntity<?> create(

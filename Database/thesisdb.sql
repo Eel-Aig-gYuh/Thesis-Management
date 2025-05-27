@@ -1,4 +1,4 @@
-USE gheethesisdb;
+USE thesisdb;
 
 -- Bảng users
 CREATE TABLE users (
@@ -15,6 +15,14 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT TRUE
 );
 
+CREATE TABLE departments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
 -- Bảng theses: Khóa luận.
 CREATE TABLE theses (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -26,8 +34,10 @@ CREATE TABLE theses (
     average_score DECIMAL(4,2),
     status ENUM('DRAFT', 'REGISTERED', 'APPROVED', 'REJECTED', 'CANCELLED') DEFAULT 'DRAFT',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    department_id BIGINT,
     
-    FOREIGN KEY (created_by) REFERENCES users(id)
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (department_id) REFERENCES departments(id)
 );
 
 -- Bảng thesis_students: sinh viên thực hiện khóa luận.
@@ -163,4 +173,17 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Bảng thesis_criteria
+CREATE TABLE thesis_criteria (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    
+    thesis_id BIGINT,
+    criteria_id BIGINT,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (thesis_id) REFERENCES theses(id),
+    FOREIGN KEY (criteria_id) REFERENCES criteria(id)
 );

@@ -17,6 +17,14 @@ import java.util.Map;
 public interface ThesisRepository {
     Theses getThesisById(long id);
     Map<String, Object> getTheses(Map<String, String> params);
+    Map<String, Object> getThesesWithoutCouncil(Map<String, String> params);
+    Map<String, Object> getTheseWithoutCriteria(Map<String, String> params);
+    
+    Map<String, Object> getMyThesis(long userId, Map<String, String> params);
+    Map<String, Object> getMyThesisInCouncil(long userId, Map<String, String> params);
+    Map<String, Object> getFileUrlsByThesisId(long thesisId);
+    List<Theses> findByIds (List<Long> ids);
+    
     List<Theses> findThesisByYear(String year);
     
     Theses createOrUpdate(Theses theses);

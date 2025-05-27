@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -59,6 +60,18 @@ public class UserRepositoryImpl implements UserRepository{
                 predicates.add(b.like(root.get("username"), String.format("%%%s%%", username)));
             }
             
+            // Lọc theo firstname
+            String firstname = params.get("firstname");
+            if (firstname != null && !firstname.isEmpty()) {
+                predicates.add(b.like(root.get("firstname"), String.format("%%%s%%", firstname)));
+            }
+            
+            // Lọc theo lastname
+            String lastname = params.get("lastname");
+            if (lastname != null && !lastname.isEmpty()) {
+                predicates.add(b.like(root.get("lastname"), String.format("%%%s%%", lastname)));
+            }
+            
             // Lọc theo role
             String role = params.get("role");
             if (role != null && !role.isEmpty()) {
@@ -88,6 +101,77 @@ public class UserRepositoryImpl implements UserRepository{
         }
         
         return query.getResultList();
+    } 
+    
+    @Override
+    public Map<String, Object> getUsersForThesis(Map<String, String> params) {
+        Session s = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<Users> q = b.createQuery(Users.class);
+        Root root = q.from(Users.class);
+        q.select(root);
+        
+        if (params != null) {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // Lọc theo username
+            String username = params.get("username");
+            if (username != null && !username.isEmpty()) {
+                predicates.add(b.like(root.get("username"), String.format("%%%s%%", username)));
+            }
+            
+            // Lọc theo firstname
+            String firstname = params.get("firstname");
+            if (firstname != null && !firstname.isEmpty()) {
+                predicates.add(b.like(root.get("firstname"), String.format("%%%s%%", firstname)));
+            }
+            
+            // Lọc theo lastname
+            String lastname = params.get("lastname");
+            if (lastname != null && !lastname.isEmpty()) {
+                predicates.add(b.like(root.get("lastname"), String.format("%%%s%%", lastname)));
+            }
+            
+            // Lọc theo role
+            String role = params.get("role");
+            if (role != null && !role.isEmpty()) {
+                predicates.add(b.equal(root.get("role"), role));
+            }
+            
+            // Sắp xếp.
+            q.where(predicates.toArray(Predicate[]::new));
+            String order = params.get("order");
+            if ("asc".equalsIgnoreCase(order)) {
+                q.orderBy(b.asc(root.get("id")));
+            } else {
+                q.orderBy(b.desc(root.get("id"))); // mặc định
+            }
+        }
+        
+        Query query = s.createQuery(q);
+        
+        // Phân trang.
+        int pageSize = Integer.parseInt(env.getProperty("page.size"));
+        if (params != null && params.containsKey("page")) {
+            int page = Integer.parseInt(params.get("page"));
+            int start = (page - 1) * pageSize;
+            
+            query.setMaxResults(pageSize);
+            query.setFirstResult(start);
+        }
+        List<Users> users = query.getResultList();
+        
+        // tính tổng số bản ghi
+        CriteriaQuery<Long> countQuery = b.createQuery(Long.class);
+        countQuery.select(b.count(countQuery.from(Users.class)));
+        Long totalRecords = s.createQuery(countQuery).getSingleResult();
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", users);
+        result.put("totalPages", totalPages);
+
+        return result;
     } 
 
     @Override

@@ -12,6 +12,7 @@ import com.ghee.pojo.Criteria;
  */
 public interface CriteriaRepository {
     Criteria getCriteriaById(long id);
+    Criteria getCriteriaByThesisId(long thesisId);
     
     Criteria createOrUpdate(Criteria criteria);
     void deleteCriteria(long id);

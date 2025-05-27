@@ -60,7 +60,6 @@ public class Theses implements Serializable {
     @Column(name = "title")
     private String title;
     
-    @Basic(optional = false)
     @Column(name = "average_score")
     private BigDecimal averageScore;
     
@@ -92,6 +91,11 @@ public class Theses implements Serializable {
     @JsonIgnore
     private Users createdBy;
     
+    @JoinColumn(name = "department_id", referencedColumnName = "id")
+    @ManyToOne
+    @JsonIgnore
+    private Departments departmentId;
+    
     @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ThesisStudents> thesisStudentsSet;
@@ -99,6 +103,10 @@ public class Theses implements Serializable {
     @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ThesisReviewers> thesisReviewersSet;
+    
+    @OneToMany(mappedBy = "thesisId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ThesisCriteria> thesisCriteriasSet;
 
     public Theses() {
     }
@@ -257,6 +265,34 @@ public class Theses implements Serializable {
      */
     public void setAverageScore(BigDecimal averageScore) {
         this.averageScore = averageScore;
+    }
+
+    /**
+     * @return the thesisCriteriasSet
+     */
+    public Set<ThesisCriteria> getThesisCriteriasSet() {
+        return thesisCriteriasSet;
+    }
+
+    /**
+     * @param thesisCriteriasSet the thesisCriteriasSet to set
+     */
+    public void setThesisCriteriasSet(Set<ThesisCriteria> thesisCriteriasSet) {
+        this.thesisCriteriasSet = thesisCriteriasSet;
+    }
+
+    /**
+     * @return the departmentId
+     */
+    public Departments getDepartmentId() {
+        return departmentId;
+    }
+
+    /**
+     * @param departmentId the departmentId to set
+     */
+    public void setDepartmentId(Departments departmentId) {
+        this.departmentId = departmentId;
     }
     
 }

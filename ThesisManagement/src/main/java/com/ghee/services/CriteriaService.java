@@ -14,8 +14,7 @@ import com.ghee.pojo.Criteria;
  */
 public interface CriteriaService {
     CriteriaResponse createCriteria(CriteriaRequest dto, String username);
-    CriteriaResponse updateCriteria(long id, CriteriaRequest dto, String username);
     
     void deleteCriteria(long id, String username);
-    CriteriaResponse getCriteriaById(long id);
+    Criteria getCriteriaById(long id);
 }

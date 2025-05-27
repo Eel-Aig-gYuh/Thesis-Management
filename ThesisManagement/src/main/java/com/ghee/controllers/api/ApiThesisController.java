@@ -4,6 +4,7 @@
  */
 package com.ghee.controllers.api;
 
+import com.ghee.dto.AverageScoreDTO;
 import com.ghee.dto.AverageScoreResponse;
 import com.ghee.dto.ScoreRequest;
 import com.ghee.dto.ScoreResponse;
@@ -12,13 +13,16 @@ import com.ghee.dto.ThesisFileResponse;
 import com.ghee.dto.ThesisRequest;
 import com.ghee.dto.ThesisResponse;
 import com.ghee.dto.ThesisReviewerDTO;
+import com.ghee.dto.ThesisScoreDTO;
 import com.ghee.dto.ThesisStatusDTO;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Users;
 import com.ghee.services.ScoreService;
 import com.ghee.services.ThesisService;
 import com.ghee.services.UserService;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,37 +50,38 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/secure/thesis")
 @CrossOrigin
 public class ApiThesisController {
+
     private static final Logger logger = Logger.getLogger(ApiThesisController.class.getName());
-    
+
     @Autowired
     private ThesisService thesisService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private ScoreService scoreService;
-    
-    
+
     /**
      * Hàm này dùng để tạo khóa luận
+     *
      * @param thesisRequest
      * @param principal
-     * @return 
+     * @return
      */
     @PostMapping("/create")
     public ResponseEntity<?> create(
             @RequestBody ThesisRequest thesisRequest,
             Principal principal) {
         logger.log(Level.INFO, "Received request to create thesis: {0}", thesisRequest.getTitle());
-        
+
         // Kiểm tra quyền giáo vụ.
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to create thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can create thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             ThesisResponse thesis = this.thesisService.createThesis(thesisRequest, username);
             logger.log(Level.INFO, "Thesis created successfully: {0}", thesis.getTitle());
@@ -86,20 +91,20 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PostMapping("/{id}/assign-reviewer")
     public ResponseEntity<?> assignReviewers(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ThesisReviewerDTO dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ThesisReviewerDTO dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to assign reviewers for thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to assign thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can assign thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             ThesisResponse response = this.thesisService.assignReviewers(id, dto, username);
             logger.log(Level.INFO, "Reviewers assigned successfully for thesis: {0}", response.getTitle());
@@ -109,20 +114,20 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PostMapping("/{id}/score")
     public ResponseEntity<?> scoreThesis(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ScoreRequest dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ScoreRequest dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to score thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIANGVIEN))) {
             logger.log(Level.WARNING, "User {0} is not authorized to score thesis", username);
             return new ResponseEntity<>("Only GIANGVIEN role can score thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             ScoreResponse response = this.scoreService.createScore(id, dto, username);
             logger.log(Level.INFO, "Thesis scored successfully: {0}", id);
@@ -132,12 +137,12 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PostMapping("/{id}/upload-file")
     public ResponseEntity<?> uploadThesisFile(
-            @PathVariable(value = "id") long id, 
-            @ModelAttribute ThesisFileRequest dto, 
-            Principal principal){
+            @PathVariable(value = "id") long id,
+            @ModelAttribute ThesisFileRequest dto,
+            Principal principal) {
         logger.log(Level.INFO, "Received request to upload file for thesis ID: {0}", id);
 
         String username = principal.getName();
@@ -156,23 +161,127 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @GetMapping("/my-thesis")
+    public ResponseEntity<?> getMyTheses(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get theses, page: {0}", page);
+
+        String username = principal.getName();
+        Users currentUser = this.userService.getUserByUsername(username);
+        String userRole = currentUser.getRole();
+        if (username == null || 
+                !(userRole.equals(UserRole.ROLE_SINHVIEN.name()) || userRole.equals(UserRole.ROLE_GIANGVIEN.name()))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view thesis", username);
+            return new ResponseEntity<>("Only SINHVIEN or GIANGVIEN role can view thesis", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            if (title != null && !title.isEmpty()) params.put("title", title);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
+
+            Map<String, Object> response = this.thesisService.getMyTheses(currentUser.getId(), params);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("/my-thesis/council")
+    public ResponseEntity<?> getMyThesesInCouncil(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get theses, page: {0}", page);
+
+        String username = principal.getName();
+        Users currentUser = this.userService.getUserByUsername(username);
+        String userRole = currentUser.getRole();
+        if (username == null || 
+                !(userRole.equals(UserRole.ROLE_SINHVIEN.name()) || userRole.equals(UserRole.ROLE_GIANGVIEN.name()))) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view thesis", username);
+            return new ResponseEntity<>("Only SINHVIEN or GIANGVIEN role can view thesis", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            if (title != null && !title.isEmpty()) params.put("title", title);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
+
+            Map<String, Object> response = this.thesisService.getMyThesesInCouncil(currentUser.getId(), params);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("/un-criteria/")
+    public ResponseEntity<?> getThesisWithoutCritera(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get theses, page: {0}", page);
+
+        String username = principal.getName();
+        Users currentUser = this.userService.getUserByUsername(username);
+        String userRole = currentUser.getRole();
+        if (username == null) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view thesis", username);
+            return new ResponseEntity<>("Only SINHVIEN or GIANGVIEN role can view thesis", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            if (title != null && !title.isEmpty()) params.put("title", title);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
+
+            Map<String, Object> response = this.thesisService.getThesesWithoutCriteria(params);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
     
     @GetMapping("/")
     public ResponseEntity<?> getTheses(
-            @RequestParam(name = "page", defaultValue = "1") int page, 
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
             Principal principal) {
         logger.log(Level.INFO, "Received request to get theses, page: {0}", page);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to view thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can view thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             Map<String, String> params = new HashMap<>();
             params.put("page", String.valueOf(page));
-            
+            if (title != null && !title.isEmpty()) params.put("title", title);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
+
             Map<String, Object> response = this.thesisService.getThese(params);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
@@ -181,20 +290,63 @@ public class ApiThesisController {
         }
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getThesisById(
-            @PathVariable(value = "id") long id, 
-            Principal principal) {
-        logger.log(Level.INFO, "Received request to get thesis ID: {0}", id);
+    @GetMapping("/{id}/file")
+    public ResponseEntity<?> getFileUrlByThesisId (
+            @PathVariable(value = "id") long id,
+            Principal principal
+    ) {
+        logger.log(Level.INFO, "Receive request to get file url");
+        String username = principal.getName();
         
+        try {
+            Map<String, Object> response = this.thesisService.getFileUrlsByThesisId(username, id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("/uncouncil/")
+    public ResponseEntity<?> getThesesUnCouncil(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "title", required = false) String title,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get theses, page: {0}", page);
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to view thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can view thesis", HttpStatus.FORBIDDEN);
         }
+
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            if (title != null && !title.isEmpty()) params.put("title", title);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
+
+            Map<String, Object> response = this.thesisService.getThesesWithoutCouncil(params);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getThesisById(
+            @PathVariable(value = "id") long id,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get thesis ID: {0}", id);
+
+        String username = principal.getName();
         
         try {
-            ThesisResponse response = this.thesisService.getThesisById(id);
+            ThesisResponse response = this.thesisService.getThesisById(username, id);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to get thesis: {0}", e.getMessage());
@@ -202,40 +354,63 @@ public class ApiThesisController {
         }
     }
     
-    @GetMapping("/{id}/average-score")
-    public ResponseEntity<?> getAverageScore(
-            @PathVariable(value = "id") long id, 
+    @GetMapping("/{id}/score-detail")
+    public ResponseEntity<?> getScoreDetailByThesisId(
+            @PathVariable(value = "id") long id,
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get score detail for thesis ID: {0}", id);
+        
+        String username = principal.getName();
+        Users currentUser = this.userService.getUserByUsername(username);
+        if (username == null) {
+            logger.log(Level.WARNING, "Unauthorized access to get score detail");
+            return new ResponseEntity<>("Unauthorized", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            Map<String, Object> response = this.scoreService.getScoreDetailsByThesisId(id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get score detail: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        
+    }
+
+    @PostMapping("/{id}/average-score")
+    public ResponseEntity<?> calculateAverageScore(
+            @PathVariable(value = "id") long id,
             Principal principal) {
         logger.log(Level.INFO, "Received request to get average score for thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null) {
             logger.log(Level.WARNING, "Unauthorized access to get average score");
             return new ResponseEntity<>("Unauthorized", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
-            AverageScoreResponse response = this.thesisService.getAverageScore(id, username);
+            AverageScoreDTO response = this.scoreService.calculateAverageScoreByThesis(id, username);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to get average score: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ThesisRequest dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ThesisRequest dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to update thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to create thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can update thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             ThesisResponse response = this.thesisService.updateThesis(id, dto, username);
             logger.log(Level.INFO, "Thesis updated successfully: {0}", response.getTitle());
@@ -245,11 +420,11 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
-    @PutMapping("/{id}/reviewers") 
+
+    @PutMapping("/{id}/reviewers")
     public ResponseEntity<?> updateReviewers(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ThesisReviewerDTO dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ThesisReviewerDTO dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to update reviewers for thesis ID: {0}", id);
 
@@ -268,20 +443,20 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateThesisStatus(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ThesisStatusDTO dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ThesisStatusDTO dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to update status for thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to create thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can update thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             ThesisResponse response = this.thesisService.updateThesisStatus(id, dto, username);
             logger.log(Level.INFO, "Thesis status updated successfully: {0}", response.getTitle());
@@ -291,19 +466,19 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
-            @PathVariable(value = "id") long id, 
+            @PathVariable(value = "id") long id,
             Principal principal) {
         logger.log(Level.INFO, "Received request to delete thesis ID: {0}", id);
-        
+
         String username = principal.getName();
         if (username == null || !this.userService.getUserByUsername(username).getRole().equals(String.valueOf(UserRole.ROLE_GIAOVU))) {
             logger.log(Level.WARNING, "User {0} is not authorized to create thesis", username);
             return new ResponseEntity<>("Only GIAOVU role can update thesis", HttpStatus.FORBIDDEN);
         }
-        
+
         try {
             this.thesisService.deleteThesis(id, username);
             logger.log(Level.INFO, "Thesis deleted successfully: {0}", id);
@@ -313,11 +488,11 @@ public class ApiThesisController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @DeleteMapping("/{id}/reviewers")
     public ResponseEntity<?> removeReviewers(
-            @PathVariable(value = "id") long id, 
-            @RequestBody ThesisReviewerDTO dto, 
+            @PathVariable(value = "id") long id,
+            @RequestBody ThesisReviewerDTO dto,
             Principal principal) {
         logger.log(Level.INFO, "Received request to remove reviewers for thesis ID: {0}", id);
 
@@ -326,7 +501,6 @@ public class ApiThesisController {
             logger.log(Level.WARNING, "User {0} is not authorized to delete reviewers", username);
             return new ResponseEntity<>("Only GIAOVU role can delete reviewers", HttpStatus.FORBIDDEN);
         }
-        
 
         try {
             ThesisResponse response = this.thesisService.removeReviewers(id, dto, username);

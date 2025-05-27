@@ -7,6 +7,7 @@ package com.ghee.controllers.api;
 import com.ghee.dto.CriteriaRequest;
 import com.ghee.dto.CriteriaResponse;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Criteria;
 import com.ghee.services.CriteriaService;
 import com.ghee.services.UserService;
 import java.security.Principal;
@@ -45,7 +46,7 @@ public class ApiCriteriaController {
     public ResponseEntity<?> create(
             @RequestBody CriteriaRequest dto, 
             Principal principal) {
-        logger.log(Level.INFO, "Received request to create criteria: {0}", dto.getName());
+        logger.log(Level.INFO, "Received request to create criteria: {0}");
         
         String username = principal.getName();
         if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_GIAOVU.name())) {
@@ -55,34 +56,10 @@ public class ApiCriteriaController {
 
         try {
             CriteriaResponse criteria = this.criteService.createCriteria(dto, username);
-            logger.log(Level.INFO, "Criteria created successfully: {0}", criteria.getName());
+            logger.log(Level.INFO, "Criteria created successfully: {0}");
             return new ResponseEntity<>(criteria, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to create criteria: {0}", e.getMessage());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(
-            @PathVariable(value = "id") long id, 
-            @RequestBody CriteriaRequest dto, 
-            Principal principal
-            ) {
-        logger.log(Level.INFO, "Received request to create criteria: {0}", dto.getName());
-        
-        String username = principal.getName();
-        if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_GIAOVU.name())) {
-            logger.log(Level.WARNING, "User {0} is not authorized to update criteria", username);
-            return new ResponseEntity<>("Only GIAOVU role can update criteria", HttpStatus.FORBIDDEN);
-        }
-        
-        try {
-            CriteriaResponse criteria = this.criteService.updateCriteria(id, dto, username);
-            logger.log(Level.INFO, "Criteria updated successfully: {0}", criteria.getName());
-            return new ResponseEntity<>(criteria, HttpStatus.OK);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to update criteria: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
@@ -122,7 +99,7 @@ public class ApiCriteriaController {
         }
         
         try {
-            CriteriaResponse response = this.criteService.getCriteriaById(id);
+            Criteria response = this.criteService.getCriteriaById(id);
             logger.log(Level.INFO, "Criteria deleted successfully: {0}", response.getName());
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {

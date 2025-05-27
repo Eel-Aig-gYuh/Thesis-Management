@@ -4,8 +4,13 @@
  */
 package com.ghee.services.impl;
 
+import com.ghee.dto.AverageScoreDTO;
 import com.ghee.dto.ScoreRequest;
 import com.ghee.dto.ScoreResponse;
+import com.ghee.dto.ScoringCriteriaResponse;
+import com.ghee.dto.ScoringRequest;
+import com.ghee.dto.ScoringResponse;
+import com.ghee.dto.StatisticDTO;
 import com.ghee.dto.ThesisUserDTO;
 import com.ghee.enums.CouncilMemberRole;
 import com.ghee.enums.UserRole;
@@ -21,8 +26,11 @@ import com.ghee.services.ScoreService;
 import com.ghee.utils.DateUtils;
 import com.ghee.validators.UserValidator;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -50,7 +58,112 @@ public class ScoreServiceImpl implements ScoreService{
 
     @Autowired
     private CriteriaRepository criteriaRepo;
+
+    @Override
+    public Map<String, Object> getScoreDetailsByThesisId(long thesisId) {
+        Map<String, Object> result = this.scoreRepo.getScoreDetailsByThesisId(thesisId);
+        
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getScoringCriteria(Long councilId, List<Long> thesisIds, long userId) {
+        logger.log(Level.INFO, "Fetching scoring criteria for council {0}, theses {1}", new Object[]{councilId, thesisIds});
+        return scoreRepo.getScoringCriteria(councilId, thesisIds, userId);
+    }
+
+    @Override
+    public ScoringResponse submitScores(ScoringRequest request) {
+        logger.log(Level.INFO, "Submitting scores for thesis {0} by user {1}", new Object[]{request.getThesisId(), request.getUserId()});
+        return scoreRepo.submitScores(request);
+    }
     
+    @Override
+    public List<StatisticDTO.ThesisScoreStatsResponse> getThesisScoreStatistics(String startYear, String endYear) {
+        logger.log(Level.INFO, "Fetching score statistics for years {0} to {1}", 
+                   new Object[]{startYear, endYear});
+        return scoreRepo.getThesisScoreStatistics(startYear, endYear);
+    }
+
+    @Override
+    public List<StatisticDTO.ThesisParticipationResponse> getThesisParticipationByDepartment(String startYear, String endYear) {
+        logger.log(Level.INFO, "Fetching participation stats for years {0} to {1}", 
+                   new Object[]{startYear, endYear});
+        return scoreRepo.getThesisParticipationByDepartment(startYear, endYear);
+    }
+
+    @Override
+    public String generateAverageScoresPdf(String year) {
+        logger.log(Level.INFO, "Generating PDF report for year {0}", year);
+        List<StatisticDTO.ThesisAverageScoreReport> reports = scoreRepo.getThesisAverageScoresForReport(year);
+
+        // Generate LaTeX content
+        StringBuilder latex = new StringBuilder();
+        latex.append("\\documentclass[a4paper,12pt]{article}\n");
+        latex.append("\\usepackage[utf8]{vietnam}\n");
+        latex.append("\\usepackage{geometry}\n");
+        latex.append("\\geometry{margin=1in}\n");
+        latex.append("\\usepackage{longtable}\n");
+        latex.append("\\usepackage{fancyhdr}\n");
+        latex.append("\\usepackage{noto}\n");
+        latex.append("\\pagestyle{fancy}\n");
+        latex.append("\\fancyhead[C]{BÁO CÁO ĐIỂM TRUNG BÌNH KHÓA LUẬN - NĂM ").append(year).append("}\n");
+        latex.append("\\fancyfoot[C]{\\thepage}\n");
+
+        latex.append("\\begin{document}\n");
+        latex.append("\\begin{center}\n");
+        latex.append("\\textbf{\\Large BÁO CÁO ĐIỂM TRUNG BÌNH KHÓA LUẬN}\\\\\n");
+        latex.append("\\vspace{0.5cm}\n");
+        latex.append("Năm học: ").append(year).append("\\\\\n");
+        latex.append("Ngày xuất báo cáo: ")
+             .append(new SimpleDateFormat("dd/MM/yyyy").format(new Date())).append("\n");
+        latex.append("\\end{center}\n");
+        latex.append("\\vspace{1cm}\n");
+
+        latex.append("\\begin{longtable}{|c|l|l|l|c|}\n");
+        latex.append("\\hline\n");
+        latex.append("\\textbf{STT} & \\textbf{Tên khóa luận} & \\textbf{Ngành} & \\textbf{Kỳ} & \\textbf{Điểm TB} \\\\ \\hline\n");
+        latex.append("\\endfirsthead\n");
+        latex.append("\\hline\n");
+        latex.append("\\textbf{STT} & \\textbf{Tên khóa luận} & \\textbf{Ngành} & \\textbf{Kỳ} & \\textbf{Điểm TB} \\\\ \\hline\n");
+        latex.append("\\endhead\n");
+
+        for (int i = 0; i < reports.size(); i++) {
+            StatisticDTO.ThesisAverageScoreReport r = reports.get(i);
+            latex.append(i + 1).append(" & ")
+                 .append(r.getTitle().replace("&", "\\&")).append(" & ")
+                 .append(r.getDepartment().replace("&", "\\&")).append(" & ")
+                 .append(r.getSemester()).append(" & ")
+                 .append(r.getAverageScore() != null ? r.getAverageScore() : "N/A").append(" \\\\ \\hline\n");
+        }
+
+        latex.append("\\end{longtable}\n");
+        latex.append("\\vspace{1cm}\n");
+        latex.append("\\begin{flushright}\n");
+        latex.append("Ngày ").append(new SimpleDateFormat("dd").format(new Date())).append(" tháng ")
+             .append(new SimpleDateFormat("MM").format(new Date())).append(" năm ")
+             .append(new SimpleDateFormat("yyyy").format(new Date())).append("\\\\\n");
+        latex.append("\\textbf{Người lập báo cáo}\\\\\n");
+        latex.append("\\vspace{2cm}\n");
+        latex.append("(Ký và ghi rõ họ tên)\n");
+        latex.append("\\end{flushright}\n");
+        latex.append("\\end{document}\n");
+
+        return latex.toString();
+    }
+
+    @Override
+    public AverageScoreDTO calculateAverageScoreByThesis(long thesisId, String username) {
+        Users currentUser = this.userRepo.getUserByUsername(username);
+        if (currentUser == null) {
+            throw new IllegalArgumentException("User not found " + username);
+        } 
+        UserValidator.checkRole(currentUser, UserRole.ROLE_GIAOVU);
+        
+        AverageScoreDTO averageScoreDTO = this.scoreRepo.calculateAverageScoreByThesis(thesisId);
+        
+        return averageScoreDTO;
+    }
     
     @Override
     public ScoreResponse createScore(long id, ScoreRequest dto, String username) {

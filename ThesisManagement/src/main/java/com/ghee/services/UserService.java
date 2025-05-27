@@ -4,6 +4,7 @@
  */
 package com.ghee.services;
 
+import com.ghee.dto.UserReponseDTO;
 import com.ghee.pojo.Users;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ public interface UserService extends UserDetailsService {
     Users getUserByUsername(String username);
     List<Users> getUsers(Map<String, String> params);
     List<Users> getUserByUserRole(String userRole);
+    Map<String, Object> getAllUsers(Map<String, String> params);
     
     Users createOrUpdate(Users u);
     void deleteUser(long id);

@@ -29,6 +29,11 @@ public class CriteriaRepositoryImpl implements CriteriaRepository{
         Session s = this.factory.getObject().getCurrentSession();
         return s.get(Criteria.class, id);
     }
+    
+    @Override
+    public Criteria getCriteriaByThesisId(long thesisId) {
+        return null;
+    }
 
     @Override
     public Criteria createOrUpdate(Criteria criteria) {

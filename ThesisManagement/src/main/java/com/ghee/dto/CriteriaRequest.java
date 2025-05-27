@@ -5,42 +5,60 @@
 package com.ghee.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
  * @author giahu
  */
 public class CriteriaRequest {
-    private String name;
-    private BigDecimal maxScore;
+    private List<CriteriaDTO> criterias;
+    private List<Long> thesisId;
+    private List<Long> createdBy;
 
     /**
-     * @return the name
+     * @return the criterias
      */
-    public String getName() {
-        return name;
+    public List<CriteriaDTO> getCriterias() {
+        return criterias;
     }
 
     /**
-     * @param name the name to set
+     * @param criterias the criterias to set
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setCriterias(List<CriteriaDTO> criterias) {
+        this.criterias = criterias;
     }
 
     /**
-     * @return the maxScore
+     * @return the thesisId
      */
-    public BigDecimal getMaxScore() {
-        return maxScore;
+    public List<Long> getThesisId() {
+        return thesisId;
     }
 
     /**
-     * @param maxScore the maxScore to set
+     * @param thesisId the thesisId to set
      */
-    public void setMaxScore(BigDecimal maxScore) {
-        this.maxScore = maxScore;
+    public void setThesisId(List<Long> thesisId) {
+        this.thesisId = thesisId;
     }
+
+    /**
+     * @return the createdBy
+     */
+    public List<Long> getCreatedBy() {
+        return createdBy;
+    }
+
+    /**
+     * @param createdBy the createdBy to set
+     */
+    public void setCreatedBy(List<Long> createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    
     
     
 }

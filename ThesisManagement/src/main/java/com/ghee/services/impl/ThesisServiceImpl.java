@@ -59,33 +59,42 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 @PropertySource("classpath:application.properties")
 public class ThesisServiceImpl implements ThesisService {
+
     private static final Logger logger = Logger.getLogger(ThesisServiceImpl.class.getName());
 
     @Autowired
     private Environment env;
-    
+
     @Autowired
     private ThesisRepository thesisRepo;
 
     @Autowired
     private UserRepository userRepo;
-    
-    @Autowired 
+
+    @Autowired
     private ScoreRepository scoreRepo;
 
     @Autowired
     private NotificationService notiService;
-    
+
     @Autowired
     private MailService mailService;
-    
+
     @Autowired
     private Cloudinary cloudinary;
 
     // ====================== GHEE
     @Override
-    public ThesisResponse getThesisById(long id) {
+    public ThesisResponse getThesisById(String username, long id) {
+        Users u = this.userRepo.getUserByUsername(username);
         Theses thesis = this.thesisRepo.getThesisById(id);
+        String role = u.getRole();
+        if (role.equals(UserRole.ROLE_SINHVIEN.name())) {
+            if (!thesis.getThesisStudentsSet().stream().allMatch(predicate -> predicate.getStudentId().getId().equals(u.getId()))) {
+                throw new IllegalArgumentException("User not in thesis");
+            }
+        }
+
         if (thesis == null) {
             logger.log(Level.WARNING, "Thesis not found: {0}", id);
             throw new IllegalArgumentException("Thesis not found");
@@ -96,6 +105,55 @@ public class ThesisServiceImpl implements ThesisService {
     @Override
     public Map<String, Object> getThese(Map<String, String> params) {
         Map<String, Object> result = this.thesisRepo.getTheses(params);
+        List<Theses> theses = (List<Theses>) result.get("theses");
+        result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getMyTheses(long id, Map<String, String> params) {
+        Map<String, Object> result = this.thesisRepo.getMyThesis(id, params);
+        List<Theses> theses = (List<Theses>) result.get("theses");
+        result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getMyThesesInCouncil(long id, Map<String, String> params) {
+        Map<String, Object> result = this.thesisRepo.getMyThesis(id, params);
+        List<Theses> theses = (List<Theses>) result.get("theses");
+        result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getThesesWithoutCriteria(Map<String, String> params) {
+        Map<String, Object> result = this.thesisRepo.getTheseWithoutCriteria(params);
+        List<Theses> theses = (List<Theses>) result.get("theses");
+        result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
+
+        return result;    
+    }
+
+    
+    @Override
+    public Map<String, Object> getFileUrlsByThesisId(String username, long thesisId) {
+        Users u = this.userRepo.getUserByUsername(username);
+        if (u == null) {
+            logger.log(Level.WARNING, "Unauthoricated, please login");
+            throw new IllegalArgumentException("Unauthoticated.");
+        }
+        Map<String, Object> result = this.thesisRepo.getFileUrlsByThesisId(thesisId);
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getThesesWithoutCouncil(Map<String, String> params) {
+        Map<String, Object> result = this.thesisRepo.getThesesWithoutCouncil(params);
         List<Theses> theses = (List<Theses>) result.get("theses");
         result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
 
@@ -212,7 +270,7 @@ public class ThesisServiceImpl implements ThesisService {
         }
 
         // Kiểm tra số lượng giảng viên hướng dẫn
-        if (dto.getSupervisorIds().size() > 2) {
+        if (dto.getSupervisorIds() != null && dto.getSupervisorIds().size() > 2) {
             logger.log(Level.WARNING, "Thesis cannot have more than 2 supervisors.", username);
             throw new IllegalArgumentException("Maximum 2 supervisors allowed");
         }
@@ -225,8 +283,8 @@ public class ThesisServiceImpl implements ThesisService {
         if (dto.getStatus() != null) {
             thesis.setStatus(String.valueOf(dto.getStatus()));
         }
-        
-        if (dto.getSemester()!= null) {
+
+        if (dto.getSemester() != null) {
             thesis.setSemester(dto.getSemester());
         }
 
@@ -305,15 +363,17 @@ public class ThesisServiceImpl implements ThesisService {
             ThesisValidatior.validateNotEmpty(thesis.getThesisAdvisorsSet(), "At least one supervisor must be assigned");
         } else if (currentStatus.equals(ThesisStatus.REGISTERED) && newStatus.equals(ThesisStatus.APPROVED)) {
             ThesisValidatior.validateNotEmpty(thesis.getThesisReviewersSet(), "At least one reviewer must be assigned");
+        } else if (newStatus.equals(ThesisStatus.CANCELLED)) {
+
         } else {
             String msg = String.format("Invalid status transition from %s to %s", currentStatus, newStatus);
             logger.warning(msg);
             throw new IllegalArgumentException(msg);
         }
-        
+
         thesis.setStatus(String.valueOf(newStatus));
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
-        
+
         // Gửi thông báo đến giáo vụ, sinh viên, hướng dẫn, phản biện
         List<Users> recipients = new ArrayList<>();
         recipients.add(updatedBy);
@@ -321,7 +381,7 @@ public class ThesisServiceImpl implements ThesisService {
         recipients.addAll(thesis.getThesisAdvisorsSet().stream().map(ThesisAdvisors::getAdvisorId).collect(Collectors.toList()));
         recipients.addAll(thesis.getThesisReviewersSet().stream().map(ThesisReviewers::getReviewerId).collect(Collectors.toList()));
         this.notiService.sendBulkNotification(recipients, "Khóa luận '" + thesis.getTitle() + "' đã được chuyển sang trạng thái: " + newStatus);
-        
+
         logger.log(Level.INFO, "Thesis status updated successfully: {0}", updatedThesis.getTitle());
         return mapToResponseThesisDTO(updatedThesis);
     }
@@ -345,7 +405,7 @@ public class ThesisServiceImpl implements ThesisService {
         // Lưu thông báo
         this.notiService.sendNotification(deletedBy, "Đã xóa khóa luận: " + thesis.getTitle());
     }
-    
+
     /**
      * Phân công phản biện...
      *
@@ -358,7 +418,7 @@ public class ThesisServiceImpl implements ThesisService {
     public ThesisResponse assignReviewers(long id, ThesisReviewerDTO dto, String username) {
         logger.log(Level.INFO, "Assigning reviewers for thesis ID: {0}", id);
         int max_reviewer_assign_per_semester = Integer.parseInt(env.getProperty("MAX_REVIEWER_ASSIGNMENTS_PER_SEMESTER"));
-        
+
         // Kiểm tra quyền giáo vụ.
         Users assignedBy = this.userRepo.getUserByUsername(username);
         UserValidator.checkRole(assignedBy, UserRole.ROLE_GIAOVU);
@@ -408,16 +468,16 @@ public class ThesisServiceImpl implements ThesisService {
             long currentAssignments = this.thesisRepo.countReviewAssignmentsByUserAndSemester(reviewer, semester);
             if (currentAssignments >= max_reviewer_assign_per_semester) {
                 logger.log(Level.WARNING, "Reviewer {0} has reached the limit of {1} assignments in semester {2}",
-                    new Object[]{reviewer.getFirstname() + " " + reviewer.getLastname(), max_reviewer_assign_per_semester, semester});
-                throw new IllegalArgumentException("Giảng viên " + reviewer.getFirstname() + " " + reviewer.getLastname() +
-                    " đã đạt giới hạn phản biện trong kỳ " + semester);
+                        new Object[]{reviewer.getFirstname() + " " + reviewer.getLastname(), max_reviewer_assign_per_semester, semester});
+                throw new IllegalArgumentException("Giảng viên " + reviewer.getFirstname() + " " + reviewer.getLastname()
+                        + " đã đạt giới hạn phản biện trong kỳ " + semester);
             }
         }
-        
+
         // Tạo phân công mới
-        for (Long reviewerId: dto.getReviewerIds()) {
+        for (Long reviewerId : dto.getReviewerIds()) {
             Users reviewer = this.userRepo.getUserById(reviewerId);
-            
+
             ThesisReviewers thesisReviewers = new ThesisReviewers();
             thesisReviewers.setThesisId(thesis);
             thesisReviewers.setReviewerId(reviewer);
@@ -437,8 +497,7 @@ public class ThesisServiceImpl implements ThesisService {
 
         return mapToResponseThesisDTO(updatedThesis);
     }
-    
-    
+
     @Override
     public ThesisResponse removeReviewers(long id, ThesisReviewerDTO dto, String username) {
         logger.log(Level.INFO, "Removing reviewers for thesis ID: {0}", id);
@@ -477,7 +536,7 @@ public class ThesisServiceImpl implements ThesisService {
     public ThesisResponse updateReviewers(long id, ThesisReviewerDTO dto, String username) {
         logger.log(Level.INFO, "Updating reviewers for thesis ID: {0}", id);
         int max_reviewer_assign_per_semester = Integer.parseInt(env.getProperty("MAX_REVIEWER_ASSIGNMENTS_PER_SEMESTER"));
-        
+
         Users updatedBy = this.userRepo.getUserByUsername(username);
         UserValidator.checkRole(updatedBy, UserRole.ROLE_GIAOVU);
 
@@ -491,18 +550,18 @@ public class ThesisServiceImpl implements ThesisService {
             logger.log(Level.WARNING, "Thesis cannot have more than 2 reviewers");
             throw new IllegalArgumentException("Maximum 2 reviewers allowed");
         }
-        
+
         // check gvhd không được là ghpb.
         Set<Long> supervisorIds = thesis.getThesisAdvisorsSet().stream()
-            .map(assignment -> assignment.getAdvisorId().getId())
-            .collect(Collectors.toSet());
+                .map(assignment -> assignment.getAdvisorId().getId())
+                .collect(Collectors.toSet());
         for (Long reviewerId : dto.getReviewerIds()) {
             if (supervisorIds.contains(reviewerId)) {
                 logger.log(Level.WARNING, "User ID {0} is already a supervisor", reviewerId);
                 throw new IllegalArgumentException("Reviewer cannot be a supervisor for the same thesis");
             }
         }
-        
+
         // check điều kiện.
         String semester = thesis.getSemester();
         for (Long reviewerId : dto.getReviewerIds()) {
@@ -512,17 +571,17 @@ public class ThesisServiceImpl implements ThesisService {
             long currentAssignments = this.thesisRepo.countReviewAssignmentsByUserAndSemester(reviewer, semester);
             if (currentAssignments >= max_reviewer_assign_per_semester) {
                 logger.log(Level.WARNING, "Reviewer {0} has reached the limit of {1} assignments in semester {2}",
-                    new Object[]{reviewer.getFirstname() + " " + reviewer.getLastname(), max_reviewer_assign_per_semester, semester});
-                throw new IllegalArgumentException("Giảng viên " + reviewer.getFirstname() + " " + reviewer.getLastname() +
-                    " đã đạt giới hạn phản biện trong kỳ " + semester);
+                        new Object[]{reviewer.getFirstname() + " " + reviewer.getLastname(), max_reviewer_assign_per_semester, semester});
+                throw new IllegalArgumentException("Giảng viên " + reviewer.getFirstname() + " " + reviewer.getLastname()
+                        + " đã đạt giới hạn phản biện trong kỳ " + semester);
             }
         }
-        
+
         List<Users> removedReviewers = thesis.getThesisReviewersSet().stream()
-            .map(ThesisReviewers::getReviewerId)
-            .filter(reviewer -> !dto.getReviewerIds().contains(reviewer.getId()))
-            .collect(Collectors.toList());
-        
+                .map(ThesisReviewers::getReviewerId)
+                .filter(reviewer -> !dto.getReviewerIds().contains(reviewer.getId()))
+                .collect(Collectors.toList());
+
         // Tạo phân công mới
         Set<ThesisReviewers> reviewerAssignments = thesis.getThesisReviewersSet();
         List<Users> recipients = new ArrayList<>();
@@ -534,7 +593,7 @@ public class ThesisServiceImpl implements ThesisService {
             // Xóa hết phần tử cũ
             reviewerAssignments.clear();
         }
-        
+
         for (Long reviewerId : dto.getReviewerIds()) {
             Users reviewer = this.userRepo.getUserById(reviewerId);
             ThesisReviewers thesisReviewer = new ThesisReviewers();
@@ -550,73 +609,72 @@ public class ThesisServiceImpl implements ThesisService {
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
 
         this.notiService.sendBulkNotification(recipients, "Danh sách phản biện cho khóa luận " + thesis.getTitle() + " đã được cập nhật.");
-    
+
         logger.log(Level.INFO, "Reviewers updated successfully for thesis: {0}", updatedThesis.getTitle());
         return mapToResponseThesisDTO(updatedThesis);
     }
 
-    
     @Override
     public AverageScoreResponse getAverageScore(long thesisId, String username) {
         logger.log(Level.INFO, "Fetching average score for thesis ID: {0}", thesisId);
-        
+
         Users user = this.userRepo.getUserByUsername(username);
         if (user == null) {
             logger.log(Level.WARNING, "User not found: {0}", username);
             throw new IllegalArgumentException("User not found");
         }
-        
+
         Theses thesis = this.thesisRepo.getThesisById(thesisId);
         if (thesis == null) {
             logger.log(Level.WARNING, "Thesis not found: {0}", thesisId);
             throw new IllegalArgumentException("Thesis not found");
         }
-        
-        boolean isAuthorized = user.getRole().equals(UserRole.ROLE_GIAOVU.name()) ||
-            thesis.getThesisStudentsSet().stream().anyMatch(ts -> ts.getStudentId().getId() == user.getId());
+
+        boolean isAuthorized = user.getRole().equals(UserRole.ROLE_GIAOVU.name())
+                || thesis.getThesisStudentsSet().stream().anyMatch(ts -> ts.getStudentId().getId().equals(user.getId()));
         if (!isAuthorized) {
             logger.log(Level.WARNING, "User {0} is not authorized to view average score for thesis {1}",
-                new Object[]{username, thesisId});
+                    new Object[]{username, thesisId});
             throw new IllegalArgumentException("User is not authorized to view average score");
         }
-        
+
         double averageScore = thesis.getAverageScore() != null ? thesis.getAverageScore().doubleValue() : 0.0;
 
         List<Scores> scores = this.scoreRepo.getScoreByThesisAndRole(thesisId, Arrays.asList(CouncilMemberRole.REVIEWER, CouncilMemberRole.MEMBER));
         List<AverageScoreResponse.MemberScoreDTO> memberScores = new ArrayList<>();
-        
+
         if (!scores.isEmpty()) {
             Map<Long, List<Scores>> scoresByMember = scores.stream()
-                .collect(Collectors.groupingBy(score -> score.getCouncilMemberId().getId()));
+                    .collect(Collectors.groupingBy(score -> score.getCouncilMemberId().getId()));
 
             for (Map.Entry<Long, List<Scores>> entry : scoresByMember.entrySet()) {
                 Users member = this.userRepo.getUserById(entry.getKey());
                 List<Scores> memberScoresList = entry.getValue();
 
                 double totalScore = memberScoresList.stream()
-                    .map(Scores::getScore)
-                    .mapToDouble(BigDecimal::doubleValue)
-                    .sum();
+                        .map(Scores::getScore)
+                        .mapToDouble(BigDecimal::doubleValue)
+                        .sum();
 
                 List<AverageScoreResponse.CriteriaScoreDTO> criteriaScores = memberScoresList.stream()
-                    .map(score -> new AverageScoreResponse.CriteriaScoreDTO(
+                        .map(score -> new AverageScoreResponse.CriteriaScoreDTO(
                         score.getCriteriaId().getId(),
                         score.getCriteriaId().getName(),
                         score.getCriteriaId().getMaxScore(),
                         score.getScore()
-                    ))
-                    .collect(Collectors.toList());
+                ))
+                        .collect(Collectors.toList());
 
                 memberScores.add(new AverageScoreResponse.MemberScoreDTO(
-                    new ThesisUserDTO(
-                        member.getId(),
-                        member.getFirstname(),
-                        member.getLastname(),
-                        member.getEmail(),
-                        null
-                    ),
-                    BigDecimal.valueOf(totalScore),
-                    criteriaScores
+                        new ThesisUserDTO(
+                                member.getId(),
+                                member.getFirstname(),
+                                member.getLastname(),
+                                member.getEmail(),
+                                null
+                        ),
+                        BigDecimal.valueOf(totalScore),
+                        criteriaScores
                 ));
             }
         }
@@ -624,14 +682,13 @@ public class ThesisServiceImpl implements ThesisService {
         logger.log(Level.INFO, "Average score retrieved for thesis ID: {0}: {1}", new Object[]{thesisId, averageScore});
         return new AverageScoreResponse(BigDecimal.valueOf(averageScore), memberScores);
     }
-    
-    
+
     @Override
     public ThesisFileResponse uploadThesisFile(ThesisFileRequest dto, String username) {
         logger.log(Level.INFO, "Uploading thesis file for thesis ID: {0} by user: {1}", new Object[]{dto.getThesisId(), username});
 
         Users student = this.userRepo.getUserByUsername(username);
-        if (student == null || student.getRole().equals(UserRole.ROLE_SINHVIEN.name())) {
+        if (student == null || !student.getRole().equals(UserRole.ROLE_SINHVIEN.name())) {
             logger.log(Level.WARNING, "User {0} is not authorized to upload thesis file", username);
             throw new IllegalArgumentException("Only SINHVIEN role can upload thesis file");
         }
@@ -643,7 +700,7 @@ public class ThesisServiceImpl implements ThesisService {
         }
 
         boolean isStudentOfThesis = thesis.getThesisStudentsSet().stream()
-            .anyMatch(ts -> ts.getStudentId().getId().equals(student.getId()));
+                .anyMatch(ts -> ts.getStudentId().getId().equals(student.getId()));
         if (!isStudentOfThesis) {
             logger.log(Level.WARNING, "User {0} is not a student of thesis {1}", new Object[]{username, dto.getThesisId()});
             throw new IllegalArgumentException("User is not a student of this thesis");
@@ -654,11 +711,13 @@ public class ThesisServiceImpl implements ThesisService {
             logger.log(Level.WARNING, "No file provided for upload");
             throw new IllegalArgumentException("File is required");
         }
-        
+
         try {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                "resource_type", "raw",
-                "folder", "thesis_files"
+                    "resource_type", "auto",
+                    "folder", "thesis_files",
+                    "public_id", file.getOriginalFilename().replace('.', 'a'), // optional
+                    "overwrite", true
             ));
 
             String fileUrl = (String) uploadResult.get("secure_url");
@@ -669,12 +728,12 @@ public class ThesisServiceImpl implements ThesisService {
 
             logger.log(Level.INFO, "Thesis file uploaded successfully: {0}", fileName);
             return new ThesisFileResponse(
-                savedFile.getId(),
-                savedFile.getThesisId().getId(),
-                savedFile.getStudentId().getId(),
-                savedFile.getFileUrl(),
-                savedFile.getFileName(),
-                savedFile.getSubmittedAt()
+                    savedFile.getId(),
+                    savedFile.getThesisId().getId(),
+                    savedFile.getStudentId().getId(),
+                    savedFile.getFileUrl(),
+                    savedFile.getFileName(),
+                    savedFile.getSubmittedAt()
             );
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to upload file to Cloudinary: {0}", e.getMessage());

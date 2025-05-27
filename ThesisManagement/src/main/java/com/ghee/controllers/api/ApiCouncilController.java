@@ -7,6 +7,7 @@ package com.ghee.controllers.api;
 import com.ghee.dto.CouncilResponse;
 import com.ghee.dto.CouncilResquest;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Users;
 import com.ghee.services.CouncilService;
 import com.ghee.services.UserService;
 import java.security.Principal;
@@ -157,6 +158,31 @@ public class ApiCouncilController {
         }
     }
     
+    @GetMapping("/my-council/")
+    public ResponseEntity<?> getMyCouncils(
+            @RequestParam(name = "page", defaultValue = "1") int page, 
+            Principal principal) {
+        logger.log(Level.INFO, "Received request to get councils, page: {0}", page);
+        
+        String username = principal.getName();
+        Users u = this.userService.getUserByUsername(username);
+        if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_GIANGVIEN.name())) {
+            logger.log(Level.WARNING, "User {0} is not authorized to view councils", username);
+            return new ResponseEntity<>("Only GIANGVIEN role can view councils", HttpStatus.FORBIDDEN);
+        }
+        
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("page", String.valueOf(page));
+            
+            Map<String, Object> response = this.councilService.getMyCouncils(u.getId(), params);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get these: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<?> getCouncilById(
             @PathVariable(value = "id") long id, 
@@ -164,10 +190,6 @@ public class ApiCouncilController {
         logger.log(Level.INFO, "Received request to get council ID: {0}", id);
         
         String username = principal.getName();
-        if (username == null || !userService.getUserByUsername(username).getRole().equals(UserRole.ROLE_GIAOVU.name())) {
-            logger.log(Level.WARNING, "User {0} is not authorized to view councils", username);
-            return new ResponseEntity<>("Only GIAOVU role can view councils", HttpStatus.FORBIDDEN);
-        }
         
         try {
             CouncilResponse response = this.councilService.getCouncilById(id);

@@ -6,18 +6,22 @@ package com.ghee.services.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.ghee.dto.UserReponseDTO;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Theses;
 import com.ghee.pojo.Users;
 import com.ghee.repositories.UserRepository;
 import com.ghee.services.UserService;
 import com.ghee.utils.JwtUtils;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,6 +53,16 @@ public class UserServiceImpl implements UserService{
     @Override
     public List<Users> getUsers(Map<String, String> params) {
         return this.userRepo.getUsers(params);
+    }
+    
+    @Override
+    public Map<String, Object> getAllUsers(Map<String, String> params) {
+        Map<String, Object> result = this.userRepo.getUsersForThesis(params);
+        List<Users> users = (List<Users>) result.get("users");
+        result.put("users", users.stream().map(this::mapToResponseDTO).collect(Collectors.toList()));
+        
+        
+        return result;
     }
     
     @Override
@@ -222,5 +236,15 @@ public class UserServiceImpl implements UserService{
         u.setPassword(passEncoder.encode(newPass));
         this.userRepo.updateUser(u);
         logger.log(Level.INFO, "Password changed successfully for user: {0}", u.getUsername());
+    }
+    
+    public UserReponseDTO mapToResponseDTO (Users u) {
+        UserReponseDTO userResponse = new UserReponseDTO();
+        userResponse.setId(u.getId());
+        userResponse.setFirstname(u.getFirstname());
+        userResponse.setLastname(u.getLastname());
+        userResponse.setRole(UserRole.valueOf(u.getRole()));
+        
+        return userResponse;
     }
 }

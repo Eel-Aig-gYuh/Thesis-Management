@@ -14,5 +14,7 @@
     <class>com.ghee.pojo.ThesisStudents</class>
     <class>com.ghee.pojo.Scores</class>
     <class>com.ghee.pojo.ThesisFiles</class>
+    <class>com.ghee.pojo.ThesisCriteria</class>
+    <class>com.ghee.pojo.Departments</class>
   </persistence-unit>
 </persistence>

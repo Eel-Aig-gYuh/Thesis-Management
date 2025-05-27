@@ -20,9 +20,14 @@ import java.util.Map;
  * @author giahu
  */
 public interface ThesisService {
-    ThesisResponse getThesisById(long id);
+    ThesisResponse getThesisById(String username, long id);
     Map<String, Object> getThese(Map<String, String> params);
     AverageScoreResponse getAverageScore(long thesisId, String username);
+    Map<String, Object> getThesesWithoutCouncil(Map<String, String> params);
+    Map<String, Object> getThesesWithoutCriteria(Map<String, String> params);
+    Map<String, Object> getMyTheses(long id, Map<String, String> params);
+    Map<String, Object> getMyThesesInCouncil(long id, Map<String, String> params);
+    Map<String, Object> getFileUrlsByThesisId(String username, long thesisId);
     
     ThesisResponse assignReviewers(long id, ThesisReviewerDTO dto, String username);
     ThesisResponse removeReviewers(long id, ThesisReviewerDTO dto, String username);

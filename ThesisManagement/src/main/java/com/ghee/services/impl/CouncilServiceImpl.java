@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,27 +53,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @PropertySource("classpath:application.properties")
 public class CouncilServiceImpl implements CouncilService {
-    
+
     private static final Logger logger = Logger.getLogger(CouncilServiceImpl.class.getName());
-    
+
     @Autowired
     private Environment env;
-    
+
     @Autowired
     private CouncilRepository councilRepo;
-    
+
     @Autowired
     private UserRepository userRepo;
-    
+
     @Autowired
     private ThesisRepository thesisRepo;
-    
+
     @Autowired
     private NotificationService notiService;
-    
+
     @Autowired
     private MailService mailService;
-    
+
     @Override
     public CouncilResponse getCouncilById(long id) {
         Councils council = this.councilRepo.getCouncilById(id);
@@ -81,7 +83,7 @@ public class CouncilServiceImpl implements CouncilService {
         }
         return mapToResponseDTO(council);
     }
-    
+
     @Override
     public Map<String, Object> getCouncils(Map<String, String> params) {
         Map<String, Object> result = this.councilRepo.getCouncils(params);
@@ -90,67 +92,76 @@ public class CouncilServiceImpl implements CouncilService {
 
         return result;
     }
-    
+
+    @Override
+    public Map<String, Object> getMyCouncils(long userId, Map<String, String> params) {
+        Map<String, Object> result = this.councilRepo.getMyCouncils(userId, params);
+        List<Councils> councils = (List<Councils>) result.get("councils");
+        result.put("councils", councils.stream().map(this::mapToResponseDTO).collect(Collectors.toList()));
+
+        return result;
+    }
+
     @Override
     public CouncilResponse createCouncil(CouncilResquest dto, String username) {
         logger.log(Level.INFO, "Creating council with name: {0}", dto.getName());
         int maxCouncilMember = Integer.parseInt(env.getProperty("MAX_COUNCIL_MEMBER"));
-        
+
         Users createdBy = this.userRepo.getUserByUsername(username);
         UserValidator.checkRole(createdBy, UserRole.ROLE_GIAOVU);
-        
+
         if (dto.getMembers().size() > maxCouncilMember) {
             logger.log(Level.WARNING, "Council cannot have more than {0} members", maxCouncilMember);
             throw new IllegalArgumentException("Maximum " + maxCouncilMember + " members allowed");
         }
-        
+
         long chairCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.CHAIRMAN)).count();
         long secretaryCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.SECRETARY)).count();
-        
+
         if (chairCount != 1 || secretaryCount != 1) {
             logger.log(Level.WARNING, "Council must have exactly one CHAIR and one SECRETARY");
             throw new IllegalArgumentException("Council must have exactly one CHAIR and one SECRETARY");
         }
-        
+
         if (dto.getDefenseDate().before(new Date())) {
             logger.log(Level.WARNING, "Defense date must be in the future");
             throw new IllegalArgumentException("Defense date must be in the future");
         }
-        
+
         if (dto.getDefenseLocation() == null || dto.getDefenseLocation().trim().isEmpty() || dto.getDefenseLocation().length() > 255) {
             logger.log(Level.WARNING, "Invalid defense location");
             throw new IllegalArgumentException("Defense location must be non-empty and at most 255 characters");
         }
-        
+
         // Tạo hội đồng.
         Councils council = new Councils();
         council.setName(dto.getName());
         council.setDefenseDate(dto.getDefenseDate());
         council.setDefenseLocation(dto.getDefenseLocation());
-        council.setStatus(dto.getStatus() != null ? dto.getStatus().name(): CouncilStatus.SCHEDULED.name());
+        council.setStatus(dto.getStatus() != null ? dto.getStatus().name() : CouncilStatus.SCHEDULED.name());
         council.setCreatedBy(createdBy);
         council.setCreatedAt(DateUtils.getTodayWithoutTime());
-        
+
         Set<CouncilMembers> members = new HashSet<>();
         List<Users> recipents = new ArrayList<>();
         recipents.add(createdBy);
-        
-        for (CouncilMemberDTO memberDTO: dto.getMembers()) {
+
+        for (CouncilMemberDTO memberDTO : dto.getMembers()) {
             Users user = this.userRepo.getUserById(memberDTO.getUserId());
             UserValidator.checkRole(user, UserRole.ROLE_GIANGVIEN);
-            
+
             CouncilMembers member = new CouncilMembers();
             member.setCouncilId(council);
             member.setMemberId(user);
             member.setRole(memberDTO.getRole().name());
-            
+
             members.add(member);
             recipents.add(user);
         }
         council.setCouncilMembersSet(members);
-        
+
         Set<CouncilTheses> councilTheses = new HashSet<>();
-        for (Long thesisId: dto.getThesisIds()) {
+        for (Long thesisId : dto.getThesisIds()) {
             Theses thesis = this.thesisRepo.getThesisById(thesisId);
             if (thesis == null) {
                 logger.log(Level.WARNING, "Thesis not found: {0}", thesisId);
@@ -160,84 +171,84 @@ public class CouncilServiceImpl implements CouncilService {
                 logger.log(Level.WARNING, "Thesis {0} is not in APPROVED status", thesisId);
                 throw new IllegalArgumentException("Thesis must be in APPROVED status: " + thesisId);
             }
-            
+
             Set<Long> supervisorIds = thesis.getThesisAdvisorsSet().stream()
                     .map(assignment -> assignment.getAdvisorId().getId())
                     .collect(Collectors.toSet());
-            
+
             Set<Long> reviewerIds = thesis.getThesisReviewersSet().stream()
                     .map(assignment -> assignment.getReviewerId().getId())
                     .collect(Collectors.toSet());
-            
+
             for (CouncilMemberDTO memberDTO : dto.getMembers()) {
                 if (supervisorIds.contains(memberDTO.getUserId()) || reviewerIds.contains(memberDTO.getUserId())) {
                     logger.log(Level.WARNING, "User ID {0} is already a supervisor or reviewer for thesis {1}",
-                        new Object[]{memberDTO.getUserId(), thesisId});
+                            new Object[]{memberDTO.getUserId(), thesisId});
                     throw new IllegalArgumentException("Council member cannot be a supervisor or reviewer for thesis: " + thesisId);
                 }
             }
-            
+
             CouncilTheses councilThesis = new CouncilTheses();
             councilThesis.setCouncilId(council);
             councilThesis.setThesisId(thesis);
             councilTheses.add(councilThesis);
         }
         council.setCouncilThesesSet(councilTheses);
-        
+
         Councils createdCouncil = this.councilRepo.createOrUpdateCouncil(council);
-        
-        this.notiService.sendBulkNotification(recipents, 
-            String.format("Bạn được phân công vào hội đồng bảo vệ %s vào ngày %s tại %s",
-                dto.getName(), dto.getDefenseDate().toString(), dto.getDefenseLocation()));
-        
+
+        this.notiService.sendBulkNotification(recipents,
+                String.format("Bạn được phân công vào hội đồng bảo vệ %s vào ngày %s tại %s",
+                        dto.getName(), dto.getDefenseDate().toString(), dto.getDefenseLocation()));
+
         logger.log(Level.INFO, "Council created successfully: {0}", createdCouncil.getName());
         return mapToResponseDTO(createdCouncil);
     }
-    
+
     @Override
     public CouncilResponse updateCouncil(long id, CouncilResquest dto, String username) {
         logger.log(Level.INFO, "Updating council ID: {0}", id);
         int maxCouncilMember = Integer.parseInt(env.getProperty("MAX_COUNCIL_MEMBER"));
-        
-        Users updatedBy = this.userRepo.getUserById(id);
+
+        Users updatedBy = this.userRepo.getUserByUsername(username);
         UserValidator.checkRole(updatedBy, UserRole.ROLE_GIAOVU);
-        
+
         Councils council = this.councilRepo.getCouncilById(id);
         if (council == null) {
             logger.log(Level.WARNING, "Council not found: {0}", id);
             throw new IllegalArgumentException("Council not found");
         }
-        
+
         if (council.getStatus().equals(CouncilStatus.LOCKED.name())) {
             logger.log(Level.WARNING, "Council {0} is locked and cannot be updated", id);
             throw new IllegalArgumentException("Council is locked");
         }
-        
+
         if (dto.getMembers() != null) {
             if (dto.getMembers().size() > maxCouncilMember) {
                 logger.log(Level.WARNING, "Council cannot have more {0} members", maxCouncilMember);
                 throw new IllegalArgumentException("Maximum " + maxCouncilMember + " members allowed");
             }
-            
-            long chairmanCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.CHAIRMAN.name())).count();
-            long secretaryCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.SECRETARY.name())).count();
-            
+
+            long chairmanCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.CHAIRMAN)).count();
+            long secretaryCount = dto.getMembers().stream().filter(m -> m.getRole().equals(CouncilMemberRole.SECRETARY)).count();
+
             if (chairmanCount != 1 || secretaryCount != 1) {
                 logger.log(Level.WARNING, "Council must have exactly one CHAIRMAN and one SECRETARY");
                 throw new IllegalArgumentException("Council must have exactly one CHAIRMAN and one SECRETARY");
             }
         }
-        
+
         if (dto.getDefenseDate() != null && dto.getDefenseDate().before(new Date())) {
             logger.log(Level.WARNING, "Defense date must be in the future");
             throw new IllegalArgumentException("Defense date must be in the future");
         }
-        
+
         if (dto.getDefenseLocation() != null && (dto.getDefenseLocation().trim().isEmpty() || dto.getDefenseLocation().length() > 255)) {
             logger.log(Level.WARNING, "Invalid defense location");
             throw new IllegalArgumentException("Defense location must be non-empty and at most 255 characters");
         }
-        
+
         if (dto.getName() != null) {
             council.setName(dto.getName());
         }
@@ -250,76 +261,153 @@ public class CouncilServiceImpl implements CouncilService {
         if (dto.getStatus() != null) {
             council.setStatus(dto.getStatus().name());
         }
-        
-        
-        // cập nhật thành viên.
+
+        // Cập nhật thành viên hội đồng
         if (dto.getMembers() != null) {
-            council.getCouncilMembersSet().clear();
-            
-            Set<CouncilMembers> members = new HashSet<>();
-            for (CouncilMemberDTO memberDTO: dto.getMembers()) {
+            if (dto.getMembers().isEmpty()) {
+                logger.log(Level.SEVERE, "Danh sách thành viên không được rỗng");
+                throw new IllegalArgumentException("Yêu cầu ít nhất một thành viên");
+            }
+            if (dto.getMembers().size() > maxCouncilMember) {
+                logger.log(Level.SEVERE, "Hội đồng không được có quá {} thành viên", maxCouncilMember);
+                throw new IllegalArgumentException("Tối đa " + maxCouncilMember + " thành viên được phép");
+            }
+
+            // Kiểm tra vai trò
+            logger.log(Level.SEVERE, "Xử lý thành viên: {}", dto.getMembers());
+            long chairmanCount = dto.getMembers().stream()
+                    .filter(m -> m.getRole() != null && m.getRole().equals(CouncilMemberRole.CHAIRMAN))
+                    .count();
+            long secretaryCount = dto.getMembers().stream()
+                    .filter(m -> m.getRole() != null && m.getRole().equals(CouncilMemberRole.SECRETARY))
+                    .count();
+
+            if (chairmanCount != 1 || secretaryCount != 1) {
+                logger.log(Level.SEVERE, String.format("Vai trò không hợp lệ: chairmanCount={%d}, secretaryCount={%d}", chairmanCount, secretaryCount));
+                throw new IllegalArgumentException("Hội đồng phải có chính xác một CHAIRMAN và một SECRETARY");
+            }
+
+            // Kiểm tra trùng lặp userId
+            Set<Long> userIds = dto.getMembers().stream()
+                    .map(CouncilMemberDTO::getUserId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            if (userIds.size() != dto.getMembers().size()) {
+                logger.log(Level.SEVERE, "Danh sách thành viên có userId trùng lặp hoặc null: {}", userIds);
+                throw new IllegalArgumentException("Mỗi thành viên phải có userId duy nhất và không null");
+            }
+
+            // Xóa danh sách thành viên cũ
+            Set<CouncilMembers> members = council.getCouncilMembersSet();
+            members.clear();
+
+            // Thêm thành viên mới
+            for (CouncilMemberDTO memberDTO : dto.getMembers()) {
+                logger.log(Level.INFO, String.format("Thêm thành viên: userId={%d}, role={%s}", memberDTO.getUserId(), memberDTO.getRole()));
+                if (memberDTO.getUserId() == null || memberDTO.getRole() == null) {
+                    logger.log(Level.SEVERE, String.format("Dữ liệu thành viên không hợp lệ: userId={%d}, role={%s}", memberDTO.getUserId(), memberDTO.getRole()));
+                    throw new IllegalArgumentException("userId và role của thành viên không được null");
+                }
                 Users member = this.userRepo.getUserById(memberDTO.getUserId());
+                if (member == null) {
+                    logger.log(Level.SEVERE, "Không tìm thấy thành viên: {}", memberDTO.getUserId());
+                    throw new IllegalArgumentException("Không tìm thấy thành viên: " + memberDTO.getUserId());
+                }
                 UserValidator.checkRole(member, UserRole.ROLE_GIANGVIEN);
-                
+
                 CouncilMembers councilMember = new CouncilMembers();
                 councilMember.setCouncilId(council);
                 councilMember.setMemberId(member);
                 councilMember.setRole(memberDTO.getRole().name());
-                
                 members.add(councilMember);
+                logger.log(Level.INFO, "Sau khi cập nhật thành viên vào council trong service {0}", councilMember.getRole());
+                logger.log(Level.INFO, "Sau khi cập nhật thành viên vào members trong service {0}", members.size());
             }
             council.setCouncilMembersSet(members);
         }
         
-        // cập nhật khóa luận.
+        // Cập nhật khóa luận
         if (dto.getThesisIds() != null) {
-            council.getCouncilThesesSet().clear();
-            
-            Set<CouncilTheses> councilTheses = new HashSet<>();
-            for (Long thesisId: dto.getThesisIds()) {
+            if (dto.getThesisIds().isEmpty()) {
+                logger.log(Level.SEVERE, "Danh sách luận văn không được rỗng nếu được cung cấp");
+                throw new IllegalArgumentException("Yêu cầu ít nhất một luận văn nếu cập nhật luận văn");
+            }
+
+            // Kiểm tra trùng lặp thesisId
+            Set<Long> thesisIds = new HashSet<>(dto.getThesisIds());
+            if (thesisIds.size() != dto.getThesisIds().size()) {
+                logger.log(Level.SEVERE, "Danh sách luận văn có thesisId trùng lặp: {}", thesisIds);
+                throw new IllegalArgumentException("Mỗi luận văn phải có ID duy nhất");
+            }
+
+            // Xóa danh sách luận văn cũ
+            Set<CouncilTheses> theses = council.getCouncilThesesSet();
+            theses.clear();
+
+            // Thêm luận văn mới
+            for (Long thesisId : dto.getThesisIds()) {
+                logger.log(Level.INFO, "Thêm luận văn: thesisId={}", thesisId != null ? thesisId : "null");
+                if (thesisId == null) {
+                    logger.log(Level.SEVERE, "Thesis ID không được null");
+                    throw new IllegalArgumentException("Thesis ID không được null");
+                }
                 Theses thesis = this.thesisRepo.getThesisById(thesisId);
-                
                 if (thesis == null) {
-                    logger.log(Level.WARNING, "Thesis not found: {0}", thesisId);
-                    throw new IllegalArgumentException("Thesis not found " + thesisId);
+                    logger.log(Level.SEVERE, "Không tìm thấy luận văn: {}", thesisId);
+                    throw new IllegalArgumentException("Không tìm thấy luận văn: " + thesisId);
                 }
                 if (!thesis.getStatus().equals(ThesisStatus.APPROVED.name())) {
-                    logger.log(Level.WARNING, "Thesis {0} is not in APPROVED status", thesisId);
-                    throw new IllegalArgumentException("Thesis must be in APPROVED status: " + thesisId);
+                    logger.log(Level.SEVERE, "Luận văn {} không ở trạng thái APPROVED", thesisId);
+                    throw new IllegalArgumentException("Luận văn phải ở trạng thái APPROVED: " + thesisId);
                 }
-                
+
+                // Kiểm tra xung đột vai trò
                 Set<Long> supervisorIds = thesis.getThesisAdvisorsSet().stream()
                         .map(assignments -> assignments.getAdvisorId().getId())
                         .collect(Collectors.toSet());
-                
                 Set<Long> reviewerIds = thesis.getThesisReviewersSet().stream()
                         .map(assignments -> assignments.getReviewerId().getId())
                         .collect(Collectors.toSet());
-                
-                for (CouncilMembers member: council.getCouncilMembersSet()) {
-                    if (supervisorIds.contains(member.getMemberId().getId()) || reviewerIds.contains(member.getMemberId().getId())) {
-                        logger.log(Level.WARNING, "Member ID {0} is already a supervisor or reviewer for thesis {1}",
-                            new Object[]{member.getMemberId().getId(), thesisId});
-                        throw new IllegalArgumentException("Council member cannot be a supervisor or reviewer for thesis: " + thesisId);
+
+                for (CouncilMembers member : council.getCouncilMembersSet()) {
+                    if (supervisorIds.contains(member.getMemberId().getId()) ||
+                            reviewerIds.contains(member.getMemberId().getId())) {
+                        logger.log(Level.SEVERE, String.format("Thành viên ID {%d} đã là người hướng dẫn hoặc phản biện cho luận văn {%d}", 
+                                member.getMemberId().getId(), thesisId));
+                        throw new IllegalArgumentException("Thành viên hội đồng không được là người hướng dẫn hoặc phản biện cho luận văn: " + thesisId);
                     }
                 }
-                
+
                 CouncilTheses councilThesis = new CouncilTheses();
                 councilThesis.setCouncilId(council);
                 councilThesis.setThesisId(thesis);
-                councilTheses.add(councilThesis);
+                theses.add(councilThesis);
             }
-            council.setCouncilThesesSet(councilTheses);
+            council.setCouncilThesesSet(theses);
         }
-        
+
+        // Log trước khi lưu
+        logger.log(Level.INFO, String.format("Trước khi lưu - yêu cầu hội đồng: members={%d}, theses={%d}", 
+                dto.getMembers() != null ? dto.getMembers().size() : 0, 
+                dto.getThesisIds() != null ? dto.getThesisIds().size() : 0));
+        logger.log(Level.INFO, String.format("Trước khi lưu - hội đồng trong service: members={%d}, theses={%d}", 
+                council.getCouncilMembersSet().size(), 
+                council.getCouncilThesesSet().size()));
+
+
+        // Lưu hội đồng
         Councils updatedCouncil = this.councilRepo.createOrUpdateCouncil(council);
-        
+        logger.log(Level.INFO, String.format("Đã lưu hội đồng: id=%d, members=%d, theses=%d",
+                updatedCouncil.getId(),
+                updatedCouncil.getCouncilMembersSet().size(),
+                updatedCouncil.getCouncilThesesSet().size()));
+
         List<Users> recipients = new ArrayList<>();
         recipients.add(updatedBy);
         recipients.addAll(council.getCouncilMembersSet().stream().map(CouncilMembers::getMemberId).collect(Collectors.toList()));
         this.notiService.sendBulkNotification(recipients,
-            String.format("Hội đồng bảo vệ %s đã được cập nhật vào ngày %s tại %s",
-                council.getName(), council.getDefenseDate().toString(), council.getDefenseLocation()));
+                String.format("Hội đồng bảo vệ %s đã được cập nhật vào ngày %s tại %s",
+                        council.getName(), council.getDefenseDate().toString(), council.getDefenseLocation()));
 
         logger.log(Level.INFO, "Council updated successfully: {0}", updatedCouncil.getName());
         return mapToResponseDTO(updatedCouncil);
@@ -346,10 +434,10 @@ public class CouncilServiceImpl implements CouncilService {
         this.councilRepo.deleteCouncil(id);
         logger.log(Level.INFO, "Council deleted successfully: {0}", id);
     }
-    
+
     @Override
     public CouncilResponse lockCouncil(long id, String username) {
-    logger.log(Level.INFO, "Locking council ID: {0}", id);
+        logger.log(Level.INFO, "Locking council ID: {0}", id);
 
         Users lockedBy = this.userRepo.getUserByUsername(username);
         if (lockedBy == null || !lockedBy.getRole().equals(UserRole.ROLE_GIAOVU.name())) {
@@ -370,7 +458,7 @@ public class CouncilServiceImpl implements CouncilService {
 
         council.setStatus(CouncilStatus.LOCKED.name());
         Councils lockedCouncil = this.councilRepo.createOrUpdateCouncil(council);
-        
+
         // Send email notifications to students
         for (CouncilTheses ct : council.getCouncilThesesSet()) {
             Theses thesis = ct.getThesisId();
@@ -379,20 +467,20 @@ public class CouncilServiceImpl implements CouncilService {
                 Users student = ts.getStudentId();
                 String subject = "Thông báo điểm trung bình khóa luận";
                 String content = String.format(
-                    "Kính gửi %s %s,\n\n" +
-                    "Điểm trung bình chính thức của khóa luận \"%s\" là: %.2f.\n" +
-                    "Cảm ơn bạn đã hoàn thành khóa luận.\n\n" +
-                    "Trân trọng,\nBan Giáo vụ",
-                    student.getFirstname(), student.getLastname(), thesis.getTitle(), averageScore
+                        "Kính gửi %s %s,\n\n"
+                        + "Điểm trung bình chính thức của khóa luận \"%s\" là: %.2f.\n"
+                        + "Cảm ơn bạn đã hoàn thành khóa luận.\n\n"
+                        + "Trân trọng,\nBan Giáo vụ",
+                        student.getFirstname(), student.getLastname(), thesis.getTitle(), averageScore
                 );
                 this.mailService.sendEmail(student.getEmail(), subject, content);
             }
         }
-        
+
         logger.log(Level.INFO, "Council locked successfully: {0}", id);
         return mapToResponseDTO(lockedCouncil);
     }
-    
+
     private CouncilResponse mapToResponseDTO(Councils council) {
         CouncilResponse dto = new CouncilResponse();
         dto.setId(council.getId());
@@ -401,29 +489,29 @@ public class CouncilServiceImpl implements CouncilService {
         dto.setDefenseLocation(council.getDefenseLocation());
         dto.setStatus(CouncilStatus.valueOf(council.getStatus()));
         dto.setCreatedAt(council.getCreatedAt());
-        
+
         dto.setMembers(council.getCouncilMembersSet().stream()
-            .map(member -> new CouncilMemberResponseDTO(
+                .map(member -> new CouncilMemberResponseDTO(
                 new ThesisUserDTO(
-                    member.getMemberId().getId(), 
-                    member.getMemberId().getFirstname(), 
-                    member.getMemberId().getLastname(),
-                    member.getMemberId().getEmail(),
-                    null
+                        member.getMemberId().getId(),
+                        member.getMemberId().getFirstname(),
+                        member.getMemberId().getLastname(),
+                        member.getMemberId().getEmail(),
+                        null
                 ),
                 CouncilMemberRole.valueOf(member.getRole())
-            ))
-            .collect(Collectors.toList())
+        ))
+                .collect(Collectors.toList())
         );
-        
+
         dto.setTheses(council.getCouncilThesesSet().stream()
-            .map(ct -> new CouncilThesisDTO(
+                .map(ct -> new CouncilThesisDTO(
                 ct.getThesisId().getId(),
                 ct.getThesisId().getTitle(),
                 ThesisStatus.valueOf(ct.getThesisId().getStatus())
-            ))
-            .collect(Collectors.toList()));
-        
+        ))
+                .collect(Collectors.toList()));
+
         Users createdBy = council.getCreatedBy();
         dto.setCreatedBy(new ThesisUserDTO(
                 createdBy.getId(),
@@ -432,7 +520,7 @@ public class CouncilServiceImpl implements CouncilService {
                 createdBy.getEmail(),
                 null
         ));
-        
+
         return dto;
     }
 

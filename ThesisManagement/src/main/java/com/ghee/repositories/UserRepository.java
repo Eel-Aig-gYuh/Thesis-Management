@@ -17,6 +17,7 @@ public interface UserRepository {
     Users getUserByUsername(String username);
     List<Users> getUsers(Map<String, String> params); 
     List<Users> getUserByUserRole(String userRole);
+    Map<String, Object> getUsersForThesis(Map<String, String> params);
     
     Users createUser(Users u);
     Users createOrUpdate(Users u);

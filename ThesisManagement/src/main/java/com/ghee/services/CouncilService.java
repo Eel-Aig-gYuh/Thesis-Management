@@ -15,6 +15,7 @@ import java.util.Map;
 public interface CouncilService {
     CouncilResponse getCouncilById(long id);
     Map<String, Object> getCouncils(Map<String, String> params);
+    Map<String, Object> getMyCouncils(long userId, Map<String, String> params);
     
     CouncilResponse createCouncil(CouncilResquest dto, String username);
     CouncilResponse updateCouncil(long id, CouncilResquest dto, String username);

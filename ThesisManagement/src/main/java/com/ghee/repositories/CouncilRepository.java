@@ -4,7 +4,10 @@
  */
 package com.ghee.repositories;
 
+import com.ghee.enums.CouncilMemberRole;
+import com.ghee.pojo.CouncilMembers;
 import com.ghee.pojo.Councils;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,6 +16,8 @@ import java.util.Map;
  */
 public interface CouncilRepository {
     Map<String, Object> getCouncils(Map<String, String> params);
+    Map<String, Object> getMyCouncils(long userId, Map<String, String> params);
+    List<CouncilMembers> findByCouncilIdAndRoles(Long councilId, List<CouncilMemberRole> roles);
     
     Councils createOrUpdateCouncil(Councils council);
     Councils getCouncilById(long id);
