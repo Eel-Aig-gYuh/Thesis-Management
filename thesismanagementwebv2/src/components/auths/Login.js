@@ -3,14 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { MyDispatcherContext } from '../../configs/MyContexts';
 import Apis, { authApis, endpoints } from '../../configs/Apis';
 import Cookies from 'js-cookie';
-import MySpinner from '../layouts/MySpinner'
-import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
+import MySpinner from '../layouts/MySpinner';
+import { Alert, Button, Col, Container, Form, Row, Toast } from 'react-bootstrap';
 import Sidebar from '../layouts/Sidebar';
 import NavbarVertical from '../layouts/NavbarVertical';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/index';
+import { useToast } from '../contexts/ToastProvider';
 
 export default function Login() {
+    const { t, i18n } = useTranslation();
+    
     const info = [{
-        title: "Tên đăng nhập",
+        title: "Tên tài khoản",
         field: "username",
         type: "text"
     }, {
@@ -20,8 +25,11 @@ export default function Login() {
     }];
 
     const [user, setUser] = useState({});
+    const toast = useToast();
+
     const [msg, setMsg] = useState();
     const [loading, setLoading] = useState(false);
+
     const nav = useNavigate();
     const dispatch = useContext(MyDispatcherContext);
 
@@ -34,24 +42,33 @@ export default function Login() {
 
         try {
             setLoading(true);
-            let res = await Apis.post(endpoints['login'], {
+            let res = await Apis.post(endpoints['auth/login'], {
                 ...user
             });
 
             console.log(user);
 
-            Cookies.save('token', res.data.token);
+            Cookies.set('token', res.data.token);
 
             let u = await authApis().get(endpoints['current-user']);
-            console.info(u.data);
+            console.info(u.data.password);
 
             dispatch({
                 "type": "login",
                 "payload": u.data
             });
-            nav("/");
+
+            // hiển thị thông báo.
+            toast(t("noti-login-success"), "success");
+            console.log(process.env.REACT_APP_DEFAULT_PASSWORD);
+            if (u?.data?.password === process.env.REACT_APP_DEFAULT_PASSWORD && u?.data?.role !== "ROLE_ADMIN") {
+                nav("/auth/change-password");
+            } else {
+                nav("/");
+            }
         } catch (ex) {
             console.error(ex);
+            toast(t("noti-login-failure"), "danger");
         } finally {
             setLoading(false);
         }
@@ -78,6 +95,8 @@ export default function Login() {
                             {loading === true ? <MySpinner /> : <Button type="submit" variant="success" className="mt-3 mb-1">Đăng nhập</Button>}
                         </Form>
                     </div>
+
+                    
                 </Col>
 
                 {/* Right Sidebar */}

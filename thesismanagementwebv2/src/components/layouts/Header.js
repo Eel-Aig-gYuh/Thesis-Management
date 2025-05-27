@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { Button, Nav, Navbar } from 'react-bootstrap'
+import { Button, Nav, Navbar, ToastContainer } from 'react-bootstrap'
 import "./style.css";
 import '../../i18n/index';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,7 @@ export default function Header() {
 
 
         <div className="curved-navbar container d-flex justify-content-between align-items-center w-100">
-          <Link to="/" className="btn text-white fw-bold mx-3 fs-4">Ghee's Thesis</Link>
+          <Link to="/" className="btn text-white fw-bold mx-3 fs-3">Ghee's Thesis</Link>
 
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="justify-content-center">
@@ -34,16 +34,14 @@ export default function Header() {
           </Button>
 
           {user === null ? <>
-            <Link to="/login" className="btn btn-light fw-semibold rounded">{t('login')}</Link>
+            <Link to="/auth/login" className="btn btn-light fw-semibold rounded">{t('login')}</Link>
           </> : <>
-            <Link to="/" className="nav-link text-danger">
+            <Link to="/" className="nav-link text-white fw-bold mx-3">
               <img src={user.avatar} width="40" className="rounded-circle" />
-              Chào {user.username}!
+                {user.username}!
             </Link>
-            <Button variant="danger" onClick={() => dispatch({ "type": "logout" })}>{t('logout')}</Button>
           </>}
         </div>
-
       </Navbar>
     </div>
   )
