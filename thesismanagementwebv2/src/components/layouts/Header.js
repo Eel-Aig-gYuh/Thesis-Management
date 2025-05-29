@@ -5,6 +5,8 @@ import '../../i18n/index';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { MyDispatcherContext, MyUserContext } from '../../configs/MyContexts';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../configs/FirebaseConfig';
 
 
 export default function Header() {
@@ -14,8 +16,9 @@ export default function Header() {
 
   const { t, i18n } = useTranslation();
 
-  const handleLogout = () => {
-    dispatch({ type: 'logout' })
+  const handleLogout = async() => {
+    dispatch({ type: 'logout' });
+    await signOut(auth);
     nav('/');
   }
 

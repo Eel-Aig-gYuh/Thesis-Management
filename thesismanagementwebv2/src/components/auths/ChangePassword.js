@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { authApis, endpoints } from '../../configs/Apis';
 import { useToast } from '../contexts/ToastProvider';
 import MySpinner from '../layouts/MySpinner';
+import { auth } from '../../configs/FirebaseConfig';
+import { updatePassword } from 'firebase/auth';
 
 export default function ChangePassword() {
     const user = useContext(MyUserContext);
@@ -52,11 +54,27 @@ export default function ChangePassword() {
             return;
         }
 
+        if (form.newPassword === process.env.REACT_APP_DEFAULT_PASSWORD) {
+            setErr('Mật khẩu không hợp lệ !');
+            return;
+        }
+
         try {
             await authApis().put(endpoints['auth/change-password'](user.id), {
                 oldPassword: form.oldPassword,
                 newPassword: form.newPassword,
             });
+
+            // cập nhật mật khẩu mới trong firebase
+            const firebaseUser=auth.currentUser;
+            if (firebaseUser) {
+                await updatePassword(firebaseUser, form.newPassword);
+                console.log("Firebase đã cập nhật password mới !");
+            } else {
+                console.log("Không có user trên firebase");
+            }
+
+
 
             toast(t("pass-change-success"), "success");
             nav("/");

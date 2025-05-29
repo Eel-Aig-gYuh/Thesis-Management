@@ -55,7 +55,7 @@ export default function Login() {
             // 3. Firebase Auth: Đăng nhập hoặc tạo tài khoản
             let firebaseUser;
             try {
-                firebaseUser = await signInWithEmailAndPassword(auth, u.data.email, u.data.password);
+                firebaseUser = await signInWithEmailAndPassword(auth, u.data.email, user.password);
             } catch (err) {
                 if (['auth/user-not-found'].includes(err.code)) {
                     console.log("Tạo người dùng mới trên Firebase");
@@ -117,8 +117,12 @@ export default function Login() {
 
             // 7. Điều hướng và hiển thị toast
             toast(t("noti-login-success"), "success");
-            const isDefaultPw = u.data.password === process.env.REACT_APP_DEFAULT_PASSWORD;
+            const isDefaultPw = user.password === process.env.REACT_APP_DEFAULT_PASSWORD;
             const isNotAdmin = u.data.role !== "ROLE_ADMIN";
+
+            console.log("Mật khẩu mặc định", process.env.REACT_APP_DEFAULT_PASSWORD);
+            console.log("Mật khẩu trong form", user.password);
+
             nav(isDefaultPw && isNotAdmin ? "/auth/change-password" : "/");
         } catch (err) {
             console.error("Lỗi khi đăng nhập:", err);

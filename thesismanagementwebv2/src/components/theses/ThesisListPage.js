@@ -206,7 +206,7 @@ const ThesisListPage = () => {
 
                     <Row>
                         {groupedBySemester[semester].map((thesis) => (
-                            <Col key={thesis.id} xs={12} className="mb-5 card-container" style={{paddingBottom: "10px"}}>
+                            <Col key={thesis.id} xs={12} className="mb-5 card-container" style={{ paddingBottom: "10px" }}>
                                 <Card
                                     className="thesis-card px-3 py-2 mt-2"
                                     style={{
@@ -241,8 +241,14 @@ const ThesisListPage = () => {
                                                         {thesis.supervisors[0]?.lastname + " " + thesis.supervisors[0]?.firstname}
                                                     </Card.Text>
                                                     <Card.Text className="mb-2">
-                                                        <strong>{t("reviewers")}: </strong>{" "}
-                                                        {thesis?.reviewers[0]?.lastname + " " + thesis?.reviewers[0]?.firstname}
+                                                        <strong style={{color: `${thesis.reviewers.length === 0 ? '#FF652F' : 'black'}`}}>{t("reviewers")}: </strong>{" "}
+                                                        {thesis.reviewers.length > 0 ? (
+                                                            <>
+                                                                {thesis?.reviewers[0]?.lastname + " " + thesis?.reviewers[0]?.firstname}
+                                                            </>
+                                                        ) : (
+                                                            <div className="fw-semibold" style={{color: "#FF652F", textAlign: "right"}}>{t('not-assign-yet')}</div>
+                                                        )}
                                                     </Card.Text>
                                                 </CardBody>
 
@@ -310,6 +316,7 @@ const ThesisListPage = () => {
                                                         <Col>
                                                             <Button
                                                                 variant="success"
+                                                                disabled={thesis.reviewers.length > 0}
                                                                 className="me-2 mt-3 mb-2 d-flex justify-content-end thesis-btn"
                                                                 onClick={() => setOpenAssignBox(thesis.id)}
                                                             >

@@ -73,7 +73,7 @@ export default function Sidebar() {
         ) : (
           <ListGroup style={{ minHeight: "450px" }} >
             {users.map((u) => (
-              <>
+              <div key={u.userId}>
                 <div style={{ borderRadius: "20px" }}>
                   <ListGroup.Item
                     key={u.userId}
@@ -86,7 +86,7 @@ export default function Sidebar() {
                     <ChatItem currentUser={user} item={u} />
                   </ListGroup.Item>
                 </div>
-              </>
+              </div>
             ))}
           </ListGroup>
         )}

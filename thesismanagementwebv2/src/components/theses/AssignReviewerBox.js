@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useToast } from '../contexts/ToastProvider'
 import { useTranslation } from 'react-i18next';
 import "../../i18n/index"
-import { assignReviewer } from '../../services/thesisService';
+import { assignReviewer, updateThesisStatus } from '../../services/thesisService';
 import SearchableUserSelectBox from '../utils/SearchableUserSelectBox';
 import { Button } from 'react-bootstrap';
 import ConfirmModal from '../utils/ConfirmModal';
@@ -21,6 +21,8 @@ export default function AssignReviewerBox({ thesisId, onSuccess, onCancel }) {
             await assignReviewer(thesisId, {
                 reviewerIds: [selectedReviewerId]
             });
+
+            await updateThesisStatus(thesisId, { status: "REGISTERED" });
 
             toast(t("assign-reviewer-success"), "success");
             setSelectedReviewerId(null);

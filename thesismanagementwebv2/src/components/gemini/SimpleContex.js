@@ -99,7 +99,7 @@ export default function SimpleContex() {
                 </Col>
 
                 <Col md={2} className='text-end'>
-                    <Button className='thesis-btn' onClick={toggleSidebar}>
+                    <Button className='gemini-btn' onClick={toggleSidebar}>
                         <FontAwesomeIcon icon={faBars} />
                     </Button>
                 </Col>
@@ -166,7 +166,7 @@ export default function SimpleContex() {
                                     rows={2}
                                 />
 
-                                <Button className='thesis-btn me-2 p-2 mt-2'
+                                <Button className='gemini-btn me-2 p-2 mt-2'
                                     style={{ marginLeft: "10px" }}
                                     type='submit' disabled={loading}>
                                     {loading ? "..." : <FontAwesomeIcon icon={faPaperPlane} />}

@@ -22,7 +22,7 @@
     transform: translateX(310%);
 }
 
-.thesis-btn {
+.gemini-btn {
     border: none;
     border-top: 3px solid black;
     border-left: 3px solid black;
@@ -35,7 +35,7 @@
     box-shadow: 0 2px 10px #FAED26;
 }
 
-.thesis-btn:hover {
+.gemini-btn:hover {
     background-color: #FAED26;
     color: black;
 }
