@@ -117,7 +117,10 @@ public class StatisticServiceImpl implements StatisticService {
 
         StringBuilder latexContent = new StringBuilder();
         latexContent.append("\\documentclass[a4paper,12pt]{article}\n")
-                .append("\\usepackage[utf8]{vietnam}\n")
+                .append("\\usepackage[utf8]{inputenc}\n")
+                .append("\\usepackage{fontspec}\n")
+                .append("\\setmainfont{Noto Serif}\n")
+                .append("\\setmainfont{Times New Roman}\n")
                 .append("\\usepackage{geometry}\n")
                 .append("\\geometry{a4paper, margin=1in}\n")
                 .append("\\usepackage{booktabs}\n")

@@ -75,7 +75,7 @@ public class CouncilServiceImpl implements CouncilService {
 
     @Autowired
     private MailService mailService;
-    
+
     @Autowired
     private DepartmentRepository departRepo;
 
@@ -202,9 +202,11 @@ public class CouncilServiceImpl implements CouncilService {
 
         Councils createdCouncil = this.councilRepo.createOrUpdateCouncil(council);
 
-        this.notiService.sendBulkNotification(recipents,
-                String.format("Bạn được phân công vào hội đồng bảo vệ %s vào ngày %s tại %s",
-                        dto.getName(), dto.getDefenseDate().toString(), dto.getDefenseLocation()));
+        for (Users recipient : recipents) {
+            this.mailService.sendNotificationEmail(recipient,
+                    String.format("Bạn được phân công vào hội đồng bảo vệ %s vào ngày %s tại %s",
+                            dto.getName(), dto.getDefenseDate().toString(), dto.getDefenseLocation()));
+        }
 
         logger.log(Level.INFO, "Council created successfully: {0}", createdCouncil.getName());
         return mapToResponseDTO(createdCouncil);
@@ -330,7 +332,7 @@ public class CouncilServiceImpl implements CouncilService {
             }
             council.setCouncilMembersSet(members);
         }
-        
+
         // Cập nhật khóa luận
         if (dto.getThesisIds() != null) {
             if (dto.getThesisIds().isEmpty()) {
@@ -375,9 +377,9 @@ public class CouncilServiceImpl implements CouncilService {
                         .collect(Collectors.toSet());
 
                 for (CouncilMembers member : council.getCouncilMembersSet()) {
-                    if (supervisorIds.contains(member.getMemberId().getId()) ||
-                            reviewerIds.contains(member.getMemberId().getId())) {
-                        logger.log(Level.SEVERE, String.format("Thành viên ID {%d} đã là người hướng dẫn hoặc phản biện cho luận văn {%d}", 
+                    if (supervisorIds.contains(member.getMemberId().getId())
+                            || reviewerIds.contains(member.getMemberId().getId())) {
+                        logger.log(Level.SEVERE, String.format("Thành viên ID {%d} đã là người hướng dẫn hoặc phản biện cho luận văn {%d}",
                                 member.getMemberId().getId(), thesisId));
                         throw new IllegalArgumentException("Thành viên hội đồng không được là người hướng dẫn hoặc phản biện cho luận văn: " + thesisId);
                     }
@@ -392,13 +394,12 @@ public class CouncilServiceImpl implements CouncilService {
         }
 
         // Log trước khi lưu
-        logger.log(Level.INFO, String.format("Trước khi lưu - yêu cầu hội đồng: members={%d}, theses={%d}", 
-                dto.getMembers() != null ? dto.getMembers().size() : 0, 
+        logger.log(Level.INFO, String.format("Trước khi lưu - yêu cầu hội đồng: members={%d}, theses={%d}",
+                dto.getMembers() != null ? dto.getMembers().size() : 0,
                 dto.getThesisIds() != null ? dto.getThesisIds().size() : 0));
-        logger.log(Level.INFO, String.format("Trước khi lưu - hội đồng trong service: members={%d}, theses={%d}", 
-                council.getCouncilMembersSet().size(), 
+        logger.log(Level.INFO, String.format("Trước khi lưu - hội đồng trong service: members={%d}, theses={%d}",
+                council.getCouncilMembersSet().size(),
                 council.getCouncilThesesSet().size()));
-
 
         // Lưu hội đồng
         Councils updatedCouncil = this.councilRepo.createOrUpdateCouncil(council);
@@ -410,9 +411,12 @@ public class CouncilServiceImpl implements CouncilService {
         List<Users> recipients = new ArrayList<>();
         recipients.add(updatedBy);
         recipients.addAll(council.getCouncilMembersSet().stream().map(CouncilMembers::getMemberId).collect(Collectors.toList()));
-        this.notiService.sendBulkNotification(recipients,
-                String.format("Hội đồng bảo vệ %s đã được cập nhật vào ngày %s tại %s",
-                        council.getName(), council.getDefenseDate().toString(), council.getDefenseLocation()));
+
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient,
+                    String.format("Hội đồng bảo vệ %s đã được cập nhật vào ngày %s tại %s",
+                            council.getName(), council.getDefenseDate().toString(), council.getDefenseLocation()));
+        }
 
         logger.log(Level.INFO, "Council updated successfully: {0}", updatedCouncil.getName());
         return mapToResponseDTO(updatedCouncil);
@@ -468,17 +472,34 @@ public class CouncilServiceImpl implements CouncilService {
         for (CouncilTheses ct : council.getCouncilThesesSet()) {
             Theses thesis = ct.getThesisId();
             double averageScore = thesis.getAverageScore() != null ? thesis.getAverageScore().doubleValue() : 0.0;
-            for (ThesisStudents ts : thesis.getThesisStudentsSet()) {
-                Users student = ts.getStudentId();
-                String subject = "Thông báo điểm trung bình khóa luận";
-                String content = String.format(
-                        "Kính gửi %s %s,\n\n"
-                        + "Điểm trung bình chính thức của khóa luận \"%s\" là: %.2f.\n"
-                        + "Cảm ơn bạn đã hoàn thành khóa luận.\n\n"
-                        + "Trân trọng,\nBan Giáo vụ",
-                        student.getFirstname(), student.getLastname(), thesis.getTitle(), averageScore
-                );
-                this.mailService.sendEmail(student.getEmail(), subject, content);
+
+            if (averageScore == 0.0) {
+                for (ThesisStudents ts : thesis.getThesisStudentsSet()) {
+                    Users student = ts.getStudentId();
+                    String subject = "Thông báo điểm trung bình khóa luận";
+                    String content = String.format(
+                            "Kính gửi %s %s,\n\n"
+                            + "Điểm trung bình chính thức của khóa luận \"%s\" đang bị lỗi.\n"
+                            + "Hệ thống sẽ cố gắng cập nhật lại điểm sớm nhất. Xin lỗi vì sự bất tiện này. \n"
+                            + "Cảm ơn bạn đã hoàn thành khóa luận.\n\n"
+                            + "Trân trọng,\nBan Giáo vụ",
+                            student.getFirstname(), student.getLastname(), thesis.getTitle()
+                    );
+                    this.mailService.sendEmail(student.getEmail(), subject, content);
+                }
+            } else {
+                for (ThesisStudents ts : thesis.getThesisStudentsSet()) {
+                    Users student = ts.getStudentId();
+                    String subject = "Thông báo điểm trung bình khóa luận";
+                    String content = String.format(
+                            "Kính gửi %s %s,\n\n"
+                            + "Điểm trung bình chính thức của khóa luận \"%s\" là: %.2f.\n"
+                            + "Cảm ơn bạn đã hoàn thành khóa luận.\n\n"
+                            + "Trân trọng,\nBan Giáo vụ",
+                            student.getFirstname(), student.getLastname(), thesis.getTitle(), averageScore
+                    );
+                    this.mailService.sendEmail(student.getEmail(), subject, content);
+                }
             }
         }
 

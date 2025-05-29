@@ -171,6 +171,28 @@ public class StatisticDTO {
         private String semester;
         private BigDecimal averageScore;
 
+        public ThesisAverageScoreReport(Long thesisId, String title, String department, String semester, Double averageScore) {
+            this.thesisId = thesisId;
+            this.title = title;
+            this.department = department;
+            this.semester = semester;
+            this.averageScore = (averageScore != null) ? new BigDecimal(averageScore) : null;
+        }
+
+        public ThesisAverageScoreReport() {
+        }
+
+        @Override
+        public String toString() {
+            return "ThesisAverageScoreReport{" +
+                   "thesisId=" + thesisId +
+                   ", thesisTitle='" + title + '\'' +
+                   ", departmentName='" + department + '\'' +
+                   ", semester='" + semester + '\'' +
+                   ", averageScore=" + averageScore +
+                   '}';
+        }
+        
         /**
          * @return the thesisId
          */

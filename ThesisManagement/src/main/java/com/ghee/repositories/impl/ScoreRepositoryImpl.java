@@ -485,7 +485,7 @@ public class ScoreRepositoryImpl implements ScoreRepository {
     public List<StatisticDTO.ThesisAverageScoreReport> getThesisAverageScoresForReport(String year) {
         Session s = factory.getObject().getCurrentSession();
         Query<StatisticDTO.ThesisAverageScoreReport> query = s.createQuery(
-            "SELECT NEW com.ghee.dto.StatisticsDTOs.ThesisAverageScoreReport(" +
+            "SELECT NEW com.ghee.dto.StatisticDTO$ThesisAverageScoreReport(" +
             "t.id, t.title, d.name, t.semester, AVG(s.score)) " +
             "FROM Theses t JOIN Departments d ON t.departmentId.id = d.id " +
             "JOIN Scores s ON t.id = s.thesisId.id " +

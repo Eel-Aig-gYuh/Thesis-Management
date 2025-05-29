@@ -254,8 +254,11 @@ public class ThesisServiceImpl implements ThesisService {
         recipients.add(createdBy);
         recipients.addAll(studentAssignments.stream().map(ThesisStudents::getStudentId).collect(Collectors.toList()));
         recipients.addAll(supervisorAssignments.stream().map(ThesisAdvisors::getAdvisorId).collect(Collectors.toList()));
-        this.notiService.sendBulkNotification(recipients, "Tạo khóa luận: " + thesis.getTitle());
-
+        
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient, "Tạo khóa luận: " + thesis.getTitle());
+        }
+        
         logger.log(Level.INFO, "Thesis created successfully: {0}", createdTheses.getTitle());
 
         return mapToResponseThesisDTO(createdTheses);
@@ -345,7 +348,7 @@ public class ThesisServiceImpl implements ThesisService {
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
 
         // Lưu thông báo
-        this.notiService.sendNotification(updatedBy, "Cập nhật khóa luận: " + thesis.getTitle());
+        this.notiService.sendNotification(thesis.getThesisStudentsSet().stream().findFirst().map(ThesisStudents::getStudentId).orElse(null), "Cập nhật khóa luận: " + thesis.getTitle());
 
         logger.log(Level.INFO, "Thesis updated successfully: {0}", updatedThesis.getTitle());
 
@@ -396,8 +399,11 @@ public class ThesisServiceImpl implements ThesisService {
         recipients.addAll(thesis.getThesisStudentsSet().stream().map(ThesisStudents::getStudentId).collect(Collectors.toList()));
         recipients.addAll(thesis.getThesisAdvisorsSet().stream().map(ThesisAdvisors::getAdvisorId).collect(Collectors.toList()));
         recipients.addAll(thesis.getThesisReviewersSet().stream().map(ThesisReviewers::getReviewerId).collect(Collectors.toList()));
-        this.notiService.sendBulkNotification(recipients, "Khóa luận '" + thesis.getTitle() + "' đã được chuyển sang trạng thái: " + newStatus);
-
+        
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient, "Khóa luận '" + thesis.getTitle() + "' đã được chuyển sang trạng thái: " + newStatus);
+        }
+        
         logger.log(Level.INFO, "Thesis status updated successfully: {0}", updatedThesis.getTitle());
         return mapToResponseThesisDTO(updatedThesis);
     }
@@ -507,8 +513,10 @@ public class ThesisServiceImpl implements ThesisService {
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
 
         // Lưu thông báo cho giáo vụ
-        this.notiService.sendBulkNotification(recipients, "Phân công phản biện cho khóa luận: " + thesis.getTitle());
-
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient, "Bạn đã được phân công phản biện cho khóa luận: " + thesis.getTitle());
+        }
+        
         logger.log(Level.INFO, "Reviewers assigned successfully for thesis: {0}", updatedThesis.getTitle());
 
         return mapToResponseThesisDTO(updatedThesis);
@@ -542,8 +550,10 @@ public class ThesisServiceImpl implements ThesisService {
 
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
 
-        this.notiService.sendBulkNotification(recipients, "Bạn đã bị xóa khỏi vai trò phản biện cho khóa luận: " + thesis.getTitle());
-
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient, "Bạn đã bị xóa khỏi vai trò phản biện cho khóa luận: " + thesis.getTitle());
+        }
+        
         logger.log(Level.INFO, "Reviewers removed successfully for thesis: {0}", updatedThesis.getTitle());
         return mapToResponseThesisDTO(updatedThesis);
     }
@@ -624,8 +634,10 @@ public class ThesisServiceImpl implements ThesisService {
 
         Theses updatedThesis = this.thesisRepo.updateThesis(thesis);
 
-        this.notiService.sendBulkNotification(recipients, "Danh sách phản biện cho khóa luận " + thesis.getTitle() + " đã được cập nhật.");
-
+        for (Users recipient : recipients) {
+            this.mailService.sendNotificationEmail(recipient, "Danh sách phản biện cho khóa luận " + thesis.getTitle() + " đã được cập nhật.");
+        }
+        
         logger.log(Level.INFO, "Reviewers updated successfully for thesis: {0}", updatedThesis.getTitle());
         return mapToResponseThesisDTO(updatedThesis);
     }

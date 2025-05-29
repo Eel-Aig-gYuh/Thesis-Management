@@ -73,54 +73,46 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public void sendEmailToUsers(List<Users> users, String content) {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
-
-        Users primary = users.stream()
-                .filter(u -> UserRole.ROLE_GIAOVU.name().equals(u.getRole()))
-                .findFirst()
-                .orElse(users.get(0));
+        if (users == null || users.isEmpty()) {
+            logger.log(Level.WARNING, "Danh sách người nhận rỗng");
+            throw new IllegalArgumentException("Danh sách người nhận không được rỗng");
+        }
 
         try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message);
+
+            Users primary = users.stream()
+                    .filter(u -> UserRole.ROLE_GIAOVU.name().equals(u.getRole()))
+                    .findFirst()
+                    .orElse(users.get(0));
             helper.setFrom(env.getProperty("spring.mail.username"));
-        } catch (MessagingException ex) {
-            Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
+
             helper.setTo(primary.getEmail());
-        } catch (MessagingException ex) {
-            Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        List<String> cc = users.stream()
-                .filter(u -> !u.getEmail().equals(primary.getEmail()))
-                .map(Users::getEmail)
-                .collect(Collectors.toList());
+            List<String> cc = users.stream()
+                    .filter(u -> !u.getEmail().equals(primary.getEmail()))
+                    .map(Users::getEmail)
+                    .collect(Collectors.toList());
 
-        if (!cc.isEmpty()) {
-            try {
+            if (!cc.isEmpty()) {
                 helper.setCc(cc.toArray(new String[0]));
-            } catch (MessagingException ex) {
-                Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
 
-        try {
             helper.setSubject("Thesis Management Notification");
-        } catch (MessagingException ex) {
-            Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        Context ctx = new Context();
-        ctx.setVariable("content", content);
-        String html = templateEngine.process("notification", ctx);
-
-        try {
+            Context ctx = new Context();
+            ctx.setVariable("content", content);
+            String html = templateEngine.process("email/notification", ctx);
             helper.setText(html, true);
+
+            mailSender.send(message);
+
+            logger.log(Level.INFO, "Gửi email thành công tới: {0}, cc: {1}",
+                    new Object[]{primary.getEmail(), cc});
         } catch (MessagingException ex) {
             Logger.getLogger(MailServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
-        mailSender.send(message);
     }
 
     @Override

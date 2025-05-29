@@ -28,5 +28,5 @@ public interface ScoreService {
     ScoringResponse submitScores(ScoringRequest request);
     List<StatisticDTO.ThesisScoreStatsResponse> getThesisScoreStatistics(String startYear, String endYear);
     List<StatisticDTO.ThesisParticipationResponse> getThesisParticipationByDepartment(String startYear, String endYear);
-    String generateAverageScoresPdf(String year);
+    byte[] generateAverageScoresPdf(String year);
 }
