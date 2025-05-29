@@ -6,7 +6,7 @@ export const fetchDepartment = async () => {
     try {
         const res = await authApis().get(endpoints['department']);
         console.log("Phản hồi từ API:", res.data); // Debug
-        return res;
+        return res.data.departments;
     } catch (error) {
         console.error("Lỗi khi gọi API:", error.response?.data || error.message);
         throw error;

@@ -8,6 +8,8 @@ import MySpinner from "../layouts/MySpinner";
 import SearchableUserSelectBox from "../utils/SearchableUserSelectBox";
 import { MyUserContext } from "../../configs/MyContexts";
 import { fetchDepartment } from "../../services/departmentService";
+import { faQuestion } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function ThesisFormPage() {
     const { t } = useTranslation();
@@ -33,7 +35,9 @@ export default function ThesisFormPage() {
             setLoading(true);
             try {
                 const res = await fetchDepartment();
-                setDepartments(res.data);
+                console.log(res);
+                setDepartments(res);
+                console.log(departments);
             } catch (err) {
                 toast(`${t("fetch-department-failure")}: ${err.response?.data || err.message}`, "danger");
                 setError(err.response?.data || err.message);
@@ -126,7 +130,11 @@ export default function ThesisFormPage() {
             ) : (
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
-                        <Form.Label>{t("thesis-title")}</Form.Label>
+                        <Form.Label>
+                            <div className="fw-bold"> 
+                                {t("thesis-title")}
+                            </div>
+                        </Form.Label>
                         <Form.Control
                             type="text"
                             name="title"
@@ -136,10 +144,14 @@ export default function ThesisFormPage() {
                         />
                     </Form.Group>
 
-                    <Row>
+                    <Row className="thesis-form-info">
                         <Col md={6}>
                             <Form.Group className="mb-3">
-                                <Form.Label>{t("department")}</Form.Label>
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("department")}
+                                    </div>
+                                </Form.Label>
                                 <Form.Select
                                     name="departmentId"
                                     value={formData.departmentId || ""}
@@ -157,7 +169,11 @@ export default function ThesisFormPage() {
                         </Col>
                         <Col md={6}>
                             <Form.Group className="mb-3">
-                                <Form.Label>{t("semester")}</Form.Label>
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("semester")}
+                                    </div>
+                                </Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="semester"
@@ -184,15 +200,23 @@ export default function ThesisFormPage() {
                                     onChange={handleSupervisorChange}
                                     label={t("supervisors")}
                                 />
-                                <Form.Text className="text-muted">
-                                    {t("max-two-supervisors-hint")}
+                                <Form.Text className="text-muted" style={{textAlign: "right"}}>
+                                    <div className="">
+                                        <FontAwesomeIcon icon={faQuestion} />  {t("max-two-supervisors-hint")}
+                                    </div>
                                 </Form.Text>
                             </Form.Group>
                         </Col>
                     </Row>
-                    <Button className="thesis-btn" type="submit" variant="primary" disabled={loading}>
-                        {loading ? <MySpinner size="sm" /> : thesisId ? t("update") : t("create")}
-                    </Button>
+                    <Row>
+                        <Col md={6}></Col>
+                        <Col md={6} style={{textAlign: 'right'}}>
+                            <Button className="thesis-btn text-end" 
+                                type="submit" variant="primary" disabled={loading}>
+                                {loading ? <MySpinner size="sm" /> : thesisId ? t("update") : t("create-thesis")}
+                            </Button>
+                        </Col>
+                    </Row>
                 </Form>
             )}
         </div>

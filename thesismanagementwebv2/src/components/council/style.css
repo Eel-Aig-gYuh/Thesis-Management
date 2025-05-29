@@ -1,3 +1,39 @@
+.council-title-list {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 8px #46344E;
+}
+
+.council-department{
+    padding: 10px 20px 20px 30px;
+    border-top: 5px solid black;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.content-info {
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 4px solid black;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 8px #46344E;
+}
+
+.council-card:hover {
+    transform: translateY(-5px);
+}
+
+.council-card {
+    border-radius: 0.7rem;
+    transition: transform 0.2s ease;
+    border-bottom: 5px solid #46344E;
+    border-left: 5px solid #46344E;
+}
+
 .council-members-editor {
     padding: 1.5rem;
     background-color: #f8f9fa;

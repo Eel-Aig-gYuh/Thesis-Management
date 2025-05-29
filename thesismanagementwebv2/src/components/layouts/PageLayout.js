@@ -8,7 +8,7 @@ const PageLayout = () => {
         <Container fluid>
             <Row className="vh-100">
                 {/* Left Nav */}
-                <Col md={2} className="bg-dark text-white p-3 rounded-4">
+                <Col md={2} className="bg-dark text-white p-3 rounded-4" style={{zIndex: 1}}>
                     <NavbarVertical />
                 </Col>
 
@@ -18,7 +18,7 @@ const PageLayout = () => {
                 </Col>
 
                 {/* Right Sidebar */}
-                <Col md={2} className="bg-light border-start p-3 rounded-4">
+                <Col md={2} className="bg-dark text-white border-start p-3 rounded-4" style={{zIndex: 1}}>
                     <Sidebar />
                 </Col>
             </Row>

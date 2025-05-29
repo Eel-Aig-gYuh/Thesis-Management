@@ -1,4 +1,6 @@
+import { signOut } from "firebase/auth";
 import Cookies from "js-cookie"; 
+import { auth } from "../configs/FirebaseConfig";
 
 export default (current, action) => {
     switch (action.type) {
@@ -6,7 +8,13 @@ export default (current, action) => {
             return action.payload;
         case "logout":
             Cookies.remove('token');
+            Cookies.remove('firebase_token');
             return null;
+        case "updateUser": 
+            return {
+                ...current,
+                ...action.payload, // gộp thông tin mới vào user hiện tại
+            };
     }
     return current;
 }

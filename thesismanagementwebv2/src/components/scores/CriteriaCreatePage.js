@@ -109,94 +109,103 @@ const CriteriaCreatePage = () => {
 
     return (
         <div className="container mt-4">
-            <h2 className="text-center mb-4">📝 {t("create-grading-criteria")}</h2>
-            <Card>
+            <h2 className="theis-title-list text-center mb-5 fw-bold" style={{ color: "white" }}>
+                {t("create-grading-criteria")}
+            </h2>
+            <Card className="p-3 rounded-4">
                 <Card.Body>
                     <Form onSubmit={handleSubmit}>
-                        <h5>{t("grading-criteria")}</h5>
+                        <h5 className="fw-bold mb-3">
+                            {t("grading-criteria")}
+                        </h5>
                         {error && <Alert variant="danger">{error}</Alert>}
-                        <Table striped bordered hover responsive>
-                            <thead>
-                                <tr>
-                                    <th>{t("criteria-name")}</th>
-                                    <th>{t("max-score")}</th>
-                                    <th>{t("actions")}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {criterias.map((criteria, index) => (
-                                    <tr key={index}>
-                                        <td>
-                                            <Form.Control
-                                                type="text"
-                                                value={criteria.criteriaName}
-                                                onChange={(e) => handleCriteriaChange(index, "criteriaName", e.target.value)}
-                                                placeholder={t("enter-criteria-name")}
-                                                required
-                                            />
+
+                        <div className="content-info mb-4 p-4">
+                            <Table striped bordered hover responsive>
+                                <thead>
+                                    <tr style={{textAlign: "center"}}>
+                                        <th>{t("criteria-name")}</th>
+                                        <th>{t("max-score")}</th>
+                                        <th>{t("actions")}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {criterias.map((criteria, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                <Form.Control
+                                                    type="text"
+                                                    value={criteria.criteriaName}
+                                                    onChange={(e) => handleCriteriaChange(index, "criteriaName", e.target.value)}
+                                                    placeholder={t("enter-criteria-name")}
+                                                    required
+                                                />
+                                            </td>
+                                            <td>
+                                                <Form.Control
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="0"
+                                                    value={criteria.maxScore}
+                                                    onChange={(e) => handleCriteriaChange(index, "maxScore", e.target.value)}
+                                                    placeholder={t("enter-max-score")}
+                                                    required
+                                                />
+                                            </td>
+                                            <td>
+                                                {index >= 3 && (
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        className="me-2 thesis-btn text-center"
+                                                        onClick={() => deleteCriteria(index)}
+                                                    >
+                                                        {t("delete")}
+                                                    </Button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colSpan="2">
+                                            <strong>{t("total-score")}: </strong>
+                                            {criterias.reduce((sum, c) => sum + (parseFloat(c.maxScore) || 0), 0).toFixed(2)}
                                         </td>
-                                        <td>
-                                            <Form.Control
-                                                type="number"
-                                                step="0.1"
-                                                min="0"
-                                                value={criteria.maxScore}
-                                                onChange={(e) => handleCriteriaChange(index, "maxScore", e.target.value)}
-                                                placeholder={t("enter-max-score")}
-                                                required
-                                            />
-                                        </td>
-                                        <td>
-                                            {index >= 3 && (
-                                                <Button
-                                                    variant="danger"
-                                                    size="sm"
-                                                    onClick={() => deleteCriteria(index)}
-                                                >
-                                                    {t("delete")}
-                                                </Button>
-                                            )}
+                                        <td className="text-center">
+                                            <Button variant="primary" className="me-2 thesis-btn" size="sm" onClick={addCriteria}>
+                                                {t("add-criteria")}
+                                            </Button>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colSpan="2">
-                                        <strong>{t("total-score")}: </strong>
-                                        {criterias.reduce((sum, c) => sum + (parseFloat(c.maxScore) || 0), 0).toFixed(2)}
-                                    </td>
-                                    <td>
-                                        <Button variant="primary" size="sm" onClick={addCriteria}>
-                                            {t("add-criteria")}
-                                        </Button>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </Table>
+                                </tfoot>
+                            </Table>
+                        </div>
 
-                        <h5 className="mt-4">{t("select-theses")}</h5>
-                        <ThesisDualList
-                            availableTheses={uniqueTheses}
-                            selectedTheses={selectedTheses}
-                            setSelectedTheses={setSelectedTheses}
-                            maxHeight={300}
-                            loadMore={loadMore}
-                            hasMore={hasMore}
-                            loading={loading}
-                            resetItems={resetItems}
-                        />
+                        <div className="content-info p-4">
+                            <ThesisDualList
+                                availableTheses={uniqueTheses}
+                                selectedTheses={selectedTheses}
+                                setSelectedTheses={setSelectedTheses}
+                                maxHeight={300}
+                                loadMore={loadMore}
+                                hasMore={hasMore}
+                                loading={loading}
+                                resetItems={resetItems}
+                            />
+                        </div>
 
                         <div className="text-end mt-4">
-                            <Button 
-                                variant="secondary" 
-                                className="me-2" 
+                            <Button
+                                variant="secondary"
+                                className="me-2 thesis-btn"
                                 as={Link}
-                                to = {"/thesis/"}
-                                >
+                                to={"/thesis/"}
+                            >
                                 {t("cancel")}
                             </Button>
-                            <Button variant="primary" type="submit">
+                            <Button variant="primary" className="thesis-btn" type="submit">
                                 {t("save")}
                             </Button>
                         </div>

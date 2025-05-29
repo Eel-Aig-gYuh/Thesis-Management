@@ -8,6 +8,7 @@ export const endpoints = {
     'current-user': '/secure/profile',
     'auth/change-password': (userId) => `/secure/users/${userId}/password`,
     'users': '/secure/users/',
+    'users/upload-avatar': '/secure/users/upload-avatar',
 
     'thesis': '/secure/thesis/',
     'thesis/detail': (thesisId) => `/secure/thesis/${thesisId}`,

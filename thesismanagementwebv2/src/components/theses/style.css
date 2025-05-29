@@ -139,6 +139,12 @@
     box-shadow: 0 2px 5px #5A5560;
 }
 
+.thesis-form-info {
+    border-bottom: 3px solid black;
+    margin-bottom: 20px;
+    border-radius: 0.7rem;
+}
+
 .thesis-form-container h2 {
     font-weight: 600;
     color: #343a40;

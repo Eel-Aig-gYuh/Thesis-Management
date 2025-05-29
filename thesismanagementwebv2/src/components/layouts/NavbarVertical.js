@@ -8,6 +8,8 @@ import { Col, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAddressCard, faBarcode, faBook, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontWeight } from '@cloudinary/url-gen/qualifiers';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../configs/FirebaseConfig';
 
 export default function NavbarVertical() {
   const user = useContext(MyUserContext);
@@ -16,8 +18,9 @@ export default function NavbarVertical() {
 
   const { t } = useTranslation();
 
-  const handleLogout = () => {
-    dispatch({ type: 'logout' })
+  const handleLogout = async() => {
+    dispatch({ type: 'logout' });
+    await signOut(auth);
     nav('/');
   }
 
@@ -37,7 +40,7 @@ export default function NavbarVertical() {
       case 'ROLE_GIAOVU':
         return (
           <div className='sidebar-div'>
-            <Sidebar label={t('feat-thesis')}/>
+            <Sidebar label={t('feat-thesis')} />
 
             <div className="sidebar-submenu ms-3">
               <Row>
@@ -59,7 +62,7 @@ export default function NavbarVertical() {
               </Row>
             </div>
 
-            <Sidebar className='sidebar-item' label={t('feat-council')}/>
+            <Sidebar className='sidebar-item' label={t('feat-council')} />
 
             <div className="sidebar-submenu ms-3">
               <Row>
@@ -90,7 +93,7 @@ export default function NavbarVertical() {
                   <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#ffffff", fontSize: "20px", display: "block", paddingTop: "12px" }} />
                 </Col>
                 <Col md={10}>
-                  <SidebarItem label="Tạo tiêu chí" path="criteria/create" />
+                  <SidebarItem label={t("create-criteria")} path="criteria/create" />
                 </Col>
               </Row>
             </div>
@@ -103,24 +106,25 @@ export default function NavbarVertical() {
       case 'ROLE_GIANGVIEN':
         return (
           <div className='sidebar-div'>
-            <SidebarItem className='sidebar-item' label="Hướng dẫn" path="/thesis/" />
-            <SidebarItem className='sidebar-item' label="Phản biện" path="/council/my-council/" />
+
+            <Sidebar className='sidebar-item' label="Hướng dẫn" path="/thesis/" />
+            <Sidebar className='sidebar-item' label="Phản biện" path="/council/my-council/" />
           </div>
         );
       case 'ROLE_SINHVIEN':
         return (
           <div className='sidebar-div'>
-            <Row>
-              <Col md={3}>
-                <FontAwesomeIcon icon={faAddressCard} style={{ color: 'white', fontSize: "30px", display: "block", paddingTop: "12px" }} />
-              </Col>
-              <Col md={9}>
-                <SidebarItem className='sidebar-item' label="Khóa luận của tôi" path="/thesis/" />
-              </Col>
-            </Row>
-
+            <Sidebar className='sidebar-item' label="Khóa luận của tôi" path="/thesis/" />
+            
             <div className="sidebar-submenu ms-3">
-              <SidebarItem label={t('feat-thesis-view')} path="/thesis/" />
+              <Row>
+                <Col md={2}>
+                  <FontAwesomeIcon icon={faBook} style={{ color: "#ffffff", fontSize: "20px", display: "block", paddingTop: "12px" }} />
+                </Col>
+                <Col md={10}>
+                  <SidebarItem label={t('feat-thesis-view')} path="/thesis/" />
+                </Col>
+              </Row>
             </div>
           </div>
         );
@@ -160,9 +164,9 @@ export default function NavbarVertical() {
   );
 }
 
-function Sidebar({label, path}) {
+function Sidebar({ label, path }) {
   return (
-    <Link className='sidebar-item d-block mt-2 mb-2 text-white text-decoration-none' style={{fontWeight: "bold", borderBottom: "2px solid white", }} to={path}>{label}</Link>
+    <Link className='sidebar-item d-block mt-2 mb-2 text-white text-decoration-none' style={{ fontWeight: "bold", borderBottom: "2px solid white", }} to={path}>{label}</Link>
   );
 }
 

@@ -19,6 +19,8 @@ import CouncilDetailPage from "./components/council/CouncilDetailPage";
 import ThesisDetailPage from "./components/theses/ThesisDetailPage";
 import CriteriaCreatePage from "./components/scores/CriteriaCreatePage";
 import StatisticsPage from "./components/stats/StatisticsPage";
+import ProfilePage from "./components/auths/ProfilePage";
+import SimpleContex from "./components/gemini/SimpleContex";
 
 const App = () => {
   const [user, dispatch] = useReducer(MyUserReducer, null);
@@ -56,6 +58,8 @@ const App = () => {
                 <Route path="auth/change-password" element={<ChangePassword />} />
 
                 <Route path="/" element={<PageLayout />}>
+                  <Route path="profile/" element={<ProfilePage />} />
+                  
                   <Route path="thesis/" element={<ThesisListPage />} />
                   <Route path="/thesis/create" element={<ThesisFormPage />} />
                   <Route path="/thesis/:thesisId" element={<ThesisDetailPage />} />
@@ -70,6 +74,8 @@ const App = () => {
                   <Route path="/council/edit/:councilId" element={<CouncilCreatePage />} />
 
                   <Route path="/statistics" element={<StatisticsPage />} />
+                  
+                  <Route path="/gemini" element={<SimpleContex />} />
 
                 </Route>
               </Route>

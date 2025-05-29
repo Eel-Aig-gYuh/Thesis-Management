@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Row, Col, Button, Form } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 
 const ThesisDualList = ({
     availableTheses = [],
@@ -11,6 +12,7 @@ const ThesisDualList = ({
     loading,   // Added prop
     resetItems
 }) => {
+    const { t } = useTranslation();
     const [searchAvailable, setSearchAvailable] = useState("");
     const [searchSelected, setSearchSelected] = useState("");
     const [selectedAvailableIds, setSelectedAvailableIds] = useState([]);
@@ -83,10 +85,10 @@ const ThesisDualList = ({
         <Row>
             {/* DANH SÁCH KHÓA LUẬN CHƯA PHÂN HỘI ĐỒNG */}
             <Col md={5}>
-                <h5>Danh sách khóa luận</h5>
+                <h5>{t("thesis-list-availabel")}</h5>
                 <Form.Control
                     type="text"
-                    placeholder="Tìm kiếm..."
+                    placeholder={t("search")}
                     className="mb-2"
                     value={searchAvailable}
                     onChange={e => setSearchAvailable(e.target.value)}
@@ -115,7 +117,7 @@ const ThesisDualList = ({
                     {/* Loading indicator */}
                     {loading && (
                         <div className="text-center my-2">
-                            <span>Đang tải...</span>
+                            <span>{t("isLoading")}</span>
                         </div>
                     )}
                     {/* Trigger element for lazy loading */}
@@ -132,7 +134,7 @@ const ThesisDualList = ({
             >
                 <Button
                     variant="secondary"
-                    className="mb-2"
+                    className="mb-2 thesis-btn"
                     onClick={moveToSelected}
                     disabled={selectedAvailableIds.length === 0}
                 >
@@ -140,6 +142,7 @@ const ThesisDualList = ({
                 </Button>
                 <Button
                     variant="warning"
+                    className="mb-2 thesis-btn"
                     onClick={moveToAvailable}
                     disabled={selectedSelectedIds.length === 0}
                 >
@@ -149,10 +152,10 @@ const ThesisDualList = ({
 
             {/* DANH SÁCH KHÓA LUẬN CẦN CHẤM */}
             <Col md={5}>
-                <h5>Danh sách cần chấm</h5>
+                <h5>{t("thesis-list-selected")}</h5>
                 <Form.Control
                     type="text"
-                    placeholder="Tìm kiếm..."
+                    placeholder={t("search")}
                     className="mb-2"
                     value={searchSelected}
                     onChange={e => setSearchSelected(e.target.value)}

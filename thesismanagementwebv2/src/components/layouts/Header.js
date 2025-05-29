@@ -1,17 +1,23 @@
 import React, { useContext } from 'react'
-import { Button, Nav, Navbar, ToastContainer } from 'react-bootstrap'
+import { Button, Dropdown, Nav, Navbar } from 'react-bootstrap'
 import "./style.css";
 import '../../i18n/index';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MyDispatcherContext, MyUserContext } from '../../configs/MyContexts';
 
 
 export default function Header() {
   const user = useContext(MyUserContext);
+  const nav = useNavigate();
   const dispatch = useContext(MyDispatcherContext);
 
   const { t, i18n } = useTranslation();
+
+  const handleLogout = () => {
+    dispatch({ type: 'logout' })
+    nav('/');
+  }
 
   return (
     <div className="curved-header">
@@ -24,22 +30,32 @@ export default function Header() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="justify-content-center">
             <Nav className="mx-auto">
-              
-              
+
+
             </Nav>
           </Navbar.Collapse>
 
-          <Button variant="btn btn-secondary" className='me-2' onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}>
+          <Button className='me-3 stats-btn' style={{ paddingLeft: "30px", paddingRight: "30px", }} onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}>
             🌐 {i18n.language === 'en' ? 'EN' : 'VI'}
           </Button>
 
           {user === null ? <>
-            <Link to="/auth/login" className="btn btn-light fw-semibold rounded">{t('login')}</Link>
+            <Link to="/auth/login" className="me-2 btn stats-btn">{t('login')}</Link>
           </> : <>
-            <Link to="/" className="nav-link text-white fw-bold mx-3">
-              <img src={user.avatar} width="40" className="rounded-circle" />
-                {user.username}!
-            </Link>
+            <Dropdown align="end">
+              <Dropdown.Toggle variant="link" className="nav-link text-white fw-bold mx-3 p-0 d-flex align-items-center" id="dropdown-user">
+                <img src={user?.avatar || 'https://res.cloudinary.com/dnqt29l2e/image/upload/v1747068051/c47vxjryuhnfz2ljk3dn.jpg'} width="40" height="40" className="rounded-circle me-2" />
+
+                <div style={{marginLeft: "20px"}}>
+                  {user?.username}
+                </div>
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item as={Link} to="/profile">{t('profile')}</Dropdown.Item>
+                <Dropdown.Item onClick={handleLogout}>{t('logout')}</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </>}
         </div>
       </Navbar>

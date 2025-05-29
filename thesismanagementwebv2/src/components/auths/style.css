@@ -1,0 +1,22 @@
+.isActive {
+    width: 20px;
+    height: 20px;
+    border-radius: 1rem;
+    position: absolute;
+    top: 160px;
+    left: 200px;
+    background-color: green;
+    z-index: 100;
+}
+
+.isActive-container {
+    width: 30px;
+    height: 30px;
+    border-radius: 2rem;
+    position: absolute;
+    top: 155px;
+    left: 195px;
+    background-color: white;
+    z-index: 1;
+    box-shadow: 0 2px 8px #46344E;
+}

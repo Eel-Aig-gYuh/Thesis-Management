@@ -5,10 +5,10 @@ import { MyUserContext } from "../../configs/MyContexts";
 import YearRangeForm from "./YearRangeForm";
 import PdfDownloadForm from "./PdfDownloadForm";
 import ParticipationStatsTable from "./ParticipationStatsTable";
-import axios from "axios";
 import ScoreStatsTable from "./ScoreStatsTable";
 import { saveAs } from "file-saver";
-import Apis, { authApis, endpoints } from "../../configs/Apis";
+import { authApis, endpoints } from "../../configs/Apis";
+import "./style.css";
 
 // Component StatisticsPage: Quản lý thống kê điểm, tần suất, và tải PDF
 const StatisticsPage = () => {
@@ -109,8 +109,12 @@ const StatisticsPage = () => {
     };
 
     return (
-        <div className="container mt-4">
-            <h2 className="text-center mb-4">{t("statistics")}</h2>
+        <div className="container mt-4 p-4 bg-black rounded-4">
+
+            <h2 className="stats-title-list text-center mb-5 fw-bold" style={{ color: "white" }}>
+                {t("statistics")}
+            </h2>
+
             {error && <Alert variant="danger">{error}</Alert>}
             {loading && <div className="text-center">{t("loading")}</div>}
 

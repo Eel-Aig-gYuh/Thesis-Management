@@ -1,0 +1,35 @@
+.stats-title-list {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 20px #FAED26;
+}
+
+.form-range {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 20px #FAED26;
+}
+
+.stats-btn {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 20px #FAED26;
+    border-color: black;
+}
+
+.stats-btn:hover {
+    background-color: #FAED26;
+    color: black;
+    font-weight: bold;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 20px #FAED26;
+}

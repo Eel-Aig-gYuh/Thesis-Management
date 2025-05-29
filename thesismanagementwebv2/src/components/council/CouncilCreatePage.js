@@ -99,13 +99,13 @@ const CouncilCreatePage = () => {
                         defenseLocation: data.defenseLocation || "",
                         members: data.members
                             ? data.members.map((member) => ({
-                                  userId: member.user?.id || null,
-                                  name: member.user
-                                      ? `${member.user.lastname} ${member.user.firstname}`
-                                      : "",
-                                  role: member.role || "",
-                                  showSelect: false,
-                              }))
+                                userId: member.user?.id || null,
+                                name: member.user
+                                    ? `${member.user.lastname} ${member.user.firstname}`
+                                    : "",
+                                role: member.role || "",
+                                showSelect: false,
+                            }))
                             : [],
                         thesisIds: data.theses ? data.theses.map((thesis) => thesis.id) : [],
                     });
@@ -132,33 +132,33 @@ const CouncilCreatePage = () => {
                     defenseLocation: draft.council.defenseLocation || "",
                     members: Array.isArray(draft.council.members)
                         ? draft.council.members
-                              .filter((member) => member && (member.userId || member.name) && member.role)
-                              .map((member) => ({
-                                  userId: member.userId || null,
-                                  name: member.name || "",
-                                  role: member.role || "",
-                                  showSelect: member.showSelect || false,
-                              }))
+                            .filter((member) => member && (member.userId || member.name) && member.role)
+                            .map((member) => ({
+                                userId: member.userId || null,
+                                name: member.name || "",
+                                role: member.role || "",
+                                showSelect: member.showSelect || false,
+                            }))
                         : [
-                              { userId: null, name: "", role: "CHAIRMAN", showSelect: false },
-                              { userId: null, name: "", role: "SECRETARY", showSelect: false },
-                              { userId: null, name: "", role: "REVIEWER", showSelect: false },
-                          ],
+                            { userId: null, name: "", role: "CHAIRMAN", showSelect: false },
+                            { userId: null, name: "", role: "SECRETARY", showSelect: false },
+                            { userId: null, name: "", role: "REVIEWER", showSelect: false },
+                        ],
                     thesisIds: Array.isArray(draft.selectedTheses)
                         ? draft.selectedTheses
-                              .filter((thesis) => thesis && thesis.id)
-                              .map((thesis) => thesis.id)
+                            .filter((thesis) => thesis && thesis.id)
+                            .map((thesis) => thesis.id)
                         : [],
                 });
                 setSelectedTheses(
                     Array.isArray(draft.selectedTheses)
                         ? draft.selectedTheses
-                              .filter((thesis) => thesis && thesis.id)
-                              .map((thesis) => ({
-                                  id: thesis.id,
-                                  title: thesis.title || "Unknown Thesis",
-                                  status: thesis.status || "",
-                              }))
+                            .filter((thesis) => thesis && thesis.id)
+                            .map((thesis) => ({
+                                id: thesis.id,
+                                title: thesis.title || "Unknown Thesis",
+                                status: thesis.status || "",
+                            }))
                         : []
                 );
                 toast(t("load-draft-success"), "success");
@@ -204,7 +204,7 @@ const CouncilCreatePage = () => {
         }
         const roles = council.members.map((member) => member.role);
         console.log(roles);
-        
+
         if (!roles.includes("CHAIRMAN")) {
             toast(t("chair-required"), "danger");
             return;
@@ -279,8 +279,7 @@ const CouncilCreatePage = () => {
         } catch (error) {
             console.error("Submit error:", error);
             toast(
-                `${
-                    isEditMode ? t("update-council-failure") : t("create-council-failure")
+                `${isEditMode ? t("update-council-failure") : t("create-council-failure")
                 }: ${error.response?.data?.message || error.message}`,
                 "danger"
             );
@@ -298,12 +297,19 @@ const CouncilCreatePage = () => {
     if (loading) return <MySpinner />;
 
     return (
-        <div className="container mt-4">
-            <h3>{isEditMode ? t("edit-council") : t("create-council")}</h3>
-            <Row>
+        <div className="container mt-4 bg-white p-4 rounded-4">
+            <h2 className="theis-title-list text-center mb-5 fw-bold" style={{ color: "white" }}>
+                {isEditMode ? t("edit-council") : t("create-council")}
+            </h2>
+
+            <Row className="content-info">
                 <Col md={6}>
                     <Form.Group className="mb-3">
-                        <Form.Label>{t("council-name")}</Form.Label>
+                        <Form.Label>
+                            <div className="fw-bold">
+                                {t("council-name")}
+                            </div>
+                        </Form.Label>
                         <Form.Control
                             value={council.name}
                             onChange={(e) => setCouncil({ ...council, name: e.target.value })}
@@ -311,7 +317,11 @@ const CouncilCreatePage = () => {
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                        <Form.Label>{t("defense-date")}</Form.Label>
+                        <Form.Label>
+                            <div className="fw-bold">
+                                {t("defense-date")}
+                            </div>
+                        </Form.Label>
                         <Form.Control
                             type="datetime-local"
                             min={new Date().toISOString().slice(0, 16)}
@@ -320,7 +330,11 @@ const CouncilCreatePage = () => {
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                        <Form.Label>{t("defense-location")}</Form.Label>
+                        <Form.Label>
+                            <div className="fw-bold">
+                                {t("defense-location")}
+                            </div>
+                        </Form.Label>
                         <Form.Control
                             value={council.defenseLocation}
                             onChange={(e) => setCouncil({ ...council, defenseLocation: e.target.value })}
@@ -331,7 +345,11 @@ const CouncilCreatePage = () => {
 
                 <Col md={6}>
                     <Form.Group className="mb-3">
-                        <Form.Label>{t("council-members")}</Form.Label>
+                        <Form.Label>
+                            <div className="fw-bold">
+                                {t("council-members")}
+                            </div>
+                        </Form.Label>
                         <CouncilMembersEditor
                             members={council.members}
                             onChange={(updatedMembers) => setCouncil({ ...council, members: updatedMembers })}
@@ -358,46 +376,58 @@ const CouncilCreatePage = () => {
                                 setCouncil({ ...council, members: updated });
                             }}
                         />
-                        <Form.Text className="text-muted">
-                            {t("members-limit-hint", { count: council.members.length })}
-                        </Form.Text>
+                        <Row>
+                            <Col md={1}></Col>
+                            <Col md={11} style={{ textAlign: "right" }}>
+                                <Form.Text className="text-muted">
+                                    ? {t("members-limit-hint", { count: council.members.length })}
+                                </Form.Text>
+                            </Col>
+                        </Row>
                     </Form.Group>
                 </Col>
             </Row>
 
-            <Form.Group className="mb-3">
-                <Form.Label>{t("theses")}</Form.Label>
-                <ThesisDualList
-                    availableTheses={uniqueTheses}
-                    selectedTheses={selectedTheses}
-                    setSelectedTheses={(newSelected) => {
-                        if (newSelected.length > 5) {
-                            toast(t("max-five-theses"), "danger");
-                            return;
-                        }
-                        setSelectedTheses(newSelected);
-                    }}
-                    loadMore={loadMore}
-                    hasMore={hasMore}
-                    loading={loading}
-                    resetItems={resetItems}
-                />
-                <Form.Text className="text-muted">
-                    {t("theses-limit-hint", { count: selectedTheses.length })}
-                </Form.Text>
-            </Form.Group>
+            <Row className="content-info mt-4">
+                <Form.Group className="mb-3 mt-4">
+                    <ThesisDualList
+                        availableTheses={uniqueTheses}
+                        selectedTheses={selectedTheses}
+                        setSelectedTheses={(newSelected) => {
+                            if (newSelected.length > 5) {
+                                toast(t("max-five-theses"), "danger");
+                                return;
+                            }
+                            setSelectedTheses(newSelected);
+                        }}
+                        loadMore={loadMore}
+                        hasMore={hasMore}
+                        loading={loading}
+                        resetItems={resetItems}
+                    />
+                    <Row>
+                        <Col md={6} style={{ textAlign: "right" }}>
+                            <Form.Text className="text-muted">
+                                ? {t("theses-limit-hint", { count: selectedTheses.length })}
+                            </Form.Text>
+                        </Col>
+                        <Col md={6} >
+                        </Col>
+                    </Row>
+                </Form.Group>
+            </Row>
 
             <div className="text-end mt-4">
                 <Button
                     variant="secondary"
-                    className="me-2"
+                    className="me-2 thesis-btn"
                     onClick={() => navigate("/council")}
                 >
                     {t("cancel")}
                 </Button>
                 <Button
                     variant="warning"
-                    className="me-2"
+                    className="me-2 thesis-btn"
                     onClick={() => {
                         localStorage.setItem("councilDraft", JSON.stringify({ council, selectedTheses }));
                         toast(t("save-draft-success"), "success");
@@ -407,7 +437,7 @@ const CouncilCreatePage = () => {
                 </Button>
                 <Button
                     variant="info"
-                    className="me-2"
+                    className="me-2 thesis-btn"
                     onClick={() => setShowLoadDraftModal(true)}
                 >
                     {t("load-draft")}
@@ -426,7 +456,7 @@ const CouncilCreatePage = () => {
                     cancelText={t("cancel")}
                 />
 
-                <Button variant="primary" onClick={handleSubmit}>
+                <Button variant="primary" className="thesis-btn" onClick={handleSubmit}>
                     {isEditMode ? t("update-council-btn") : t("create-council-btn")}
                 </Button>
             </div>

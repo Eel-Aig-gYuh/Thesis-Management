@@ -88,7 +88,7 @@ const SearchableUserSelectBox = ({ role, selectedIds, onChange, onUserSelect, la
 
     return (
         <Form.Group className="mb-3">
-            <Form.Label className="">
+            <Form.Label className="fw-bold">
                 {label}
             </Form.Label>
 

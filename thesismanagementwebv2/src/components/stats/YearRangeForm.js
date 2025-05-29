@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Form, Button, Card, Row, Col } from "react-bootstrap";
+import "./style.css";
 
 // Component YearRangeForm: Form nhập năm để lấy thống kê
 // Props:
@@ -18,7 +19,7 @@ const YearRangeForm = ({
     const { t } = useTranslation();
 
     return (
-        <Card className="mb-4">
+        <Card className="mb-4 form-range">
             <Card.Body>
                 <Form>
                     <Form.Group className="mb-3">
@@ -42,10 +43,10 @@ const YearRangeForm = ({
                             </Col>
                         </Row>
                     </Form.Group>
-                    <Button onClick={onFetchScoreStats} className="me-2">
+                    <Button onClick={onFetchScoreStats} className="me-2 stats-btn">
                         {t("view-score-stats")}
                     </Button>
-                    <Button onClick={onFetchParticipationStats}>
+                    <Button onClick={onFetchParticipationStats} className="me-2 stats-btn">
                         {t("view-participation-stats")}
                     </Button>
                 </Form>

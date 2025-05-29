@@ -11,11 +11,10 @@ import ScoreForm from "../scores/ScoreForm";
 import { getGradingCriteria } from "../../services/scoreService";
 
 const STATUS_COLORS = {
-    SCHEDULED: "#d1ecf1",
-    ONGOING: "#d4edda",
-    COMPLETED: "#fff3cd",
-    CANCELED: "#f8d7da",
-    LOCKED: "#e2e3e5",
+    SCHEDULED: "#9B786F",
+    COMPLETED: "#14A76C",
+    CANCELED: "#FF652F",
+    LOCKED: "#374785",
 };
 
 const CouncilDetailPage = () => {
@@ -150,12 +149,25 @@ const CouncilDetailPage = () => {
 
     return (
         <div className="container mt-4">
-            <h2 className="text-center mb-4">📋 {t("council-details")}</h2>
-            <Card style={{ backgroundColor: STATUS_COLORS[council.status] || "#ffffff" }}>
-                <Card.Body>
+            <h2 className="text-center mb-4 theis-title-list">{t("council-details")}</h2>
+
+            <div className="content-title-list mt-4 mb-4">
+                <div className="fs-4 fw-bold">
+                    {council.name}
+                </div>
+            </div>
+
+            <Card className="card-container">
+                <Card.Title>
+                    <div className="thesis-card-title"
+                        style={{ backgroundColor: STATUS_COLORS[council.status] || STATUS_COLORS.DRAFT, color: "white" }}>
+                        <strong> {t(council.status.toLowerCase())}</strong>
+                    </div>
+                </Card.Title>
+
+                <Card.Body className="content-body-list mt-4 mb-4">
                     <Row>
                         <Col md={6}>
-                            <Card.Title>{council.name}</Card.Title>
                             <Card.Text>
                                 <strong>{t("defense-date")}:</strong>{" "}
                                 {new Date(council.defenseDate).toLocaleString()}
@@ -216,78 +228,85 @@ const CouncilDetailPage = () => {
                             </Card.Text>
                         </Col>
                     </Row>
-                    <div className="text-end mt-3">
-                        <Link className="btn btn-secondary me-2" to="/council">
-                            {t("back")}
-                        </Link>
+                </Card.Body>
 
-                        {user?.role === "ROLE_GIANGVIEN" && (
-                            <Button
-                                variant="success"
-                                className="me-2"
-                                onClick={toggleScorePage}
-                                disabled={isLocked || isCancelled}
-                            >
-                                {t("grade-score-btn")}
-                            </Button>
-                        )}
+                <div>
+                    <Row>
+                        <Col className="p-2 mb-3" style={{marginLeft: "20px"}}>
+                            <Link className="btn btn-secondary me-2 thesis-btn" to="/council">
+                                {t("back")}
+                            </Link>
+                        </Col>
 
-                        {user?.role === "ROLE_GIAOVU" && (
-                            <>
+                        <Col className="text-end p-2 mb-3" style={{marginRight: "20px"}}>
+                            {user?.role === "ROLE_GIANGVIEN" && (
                                 <Button
                                     variant="success"
-                                    className="me-2"
-                                    onClick={() => setLockModal(true)}
+                                    className="me-2 thesis-btn"
+                                    onClick={toggleScorePage}
                                     disabled={isLocked || isCancelled}
                                 >
-                                    {t("lock-council-btn")}
+                                    {t("grade-score-btn")}
                                 </Button>
+                            )}
 
-                                <Link
-                                    className={`btn btn-warning me-2 ${isLocked ? "disabled" : ""}`}
-                                    to={isLocked ? "#" : `/council/edit/${councilId}`}
-                                    onClick={(e) => isLocked && e.preventDefault()}
-                                >
-                                    {t("edit")}
-                                </Link>
-                                <Button
-                                    variant="danger"
-                                    className="me-2"
-                                    onClick={() => setShowCancelModal(true)}
-                                    disabled={isLocked || isCancelled}
-                                >
-                                    {t("cancel-council-btn")}
-                                </Button>
-                            </>
-                        )}
+                            {user?.role === "ROLE_GIAOVU" && (
+                                <>
+                                    <Button
+                                        variant="success"
+                                        className="me-2 thesis-btn"
+                                        onClick={() => setLockModal(true)}
+                                        disabled={isLocked || isCancelled}
+                                    >
+                                        {t("lock-council-btn")}
+                                    </Button>
 
-                        <ConfirmModal
-                            show={showCancelModal}
-                            onHide={() => setShowCancelModal(false)}
-                            onConfirm={() => {
-                                handleCancelCouncil();
-                                setShowCancelModal(false);
-                            }}
-                            title={t("confirm-cancel-council-title")}
-                            message={t("confirm-cancel-council-message")}
-                            confirmText={t("cancel-council-btn")}
-                            cancelText={t("cancel")}
-                        />
+                                    <Link
+                                        className={`btn btn-warning me-2 thesis-btn ${isLocked ? "disabled" : ""}`}
+                                        to={isLocked ? "#" : `/council/edit/${councilId}`}
+                                        onClick={(e) => isLocked && e.preventDefault()}
+                                    >
+                                        {t("edit")}
+                                    </Link>
+                                    <Button
+                                        variant="danger"
+                                        className="me-2 thesis-btn"
+                                        onClick={() => setShowCancelModal(true)}
+                                        disabled={isLocked || isCancelled}
+                                    >
+                                        {t("cancel-council-btn")}
+                                    </Button>
+                                </>
+                            )}
 
-                        <ConfirmModal
-                            show={showLockModal}
-                            onHide={() => setLockModal(false)}
-                            onConfirm={() => {
-                                handleLockCouncil();
-                                setLockModal(false);
-                            }}
-                            title={t("confirm-lock-council-title")}
-                            message={t("confirm-lock-council-message")}
-                            confirmText={t("lock-council-btn")}
-                            cancelText={t("cancel")}
-                        />
-                    </div>
-                </Card.Body>
+                            <ConfirmModal
+                                show={showCancelModal}
+                                onHide={() => setShowCancelModal(false)}
+                                onConfirm={() => {
+                                    handleCancelCouncil();
+                                    setShowCancelModal(false);
+                                }}
+                                title={t("confirm-cancel-council-title")}
+                                message={t("confirm-cancel-council-message")}
+                                confirmText={t("cancel-council-btn")}
+                                cancelText={t("cancel")}
+                            />
+
+                            <ConfirmModal
+                                show={showLockModal}
+                                onHide={() => setLockModal(false)}
+                                onConfirm={() => {
+                                    handleLockCouncil();
+                                    setLockModal(false);
+                                }}
+                                title={t("confirm-lock-council-title")}
+                                message={t("confirm-lock-council-message")}
+                                confirmText={t("lock-council-btn")}
+                                cancelText={t("cancel")}
+                            />
+                        </Col>
+                    </Row>
+                </div>
             </Card>
 
             {showScoreForm && (

@@ -44,6 +44,12 @@
   }
 }
 
+.chat-list-container {
+  border-radius: 1rem;
+  border: 3px solid black;
+  box-shadow: 0 4px 12px #FAED26;
+}
+
 .sidebar-header {
   font-size: 1.2rem;
   font-weight: bold;

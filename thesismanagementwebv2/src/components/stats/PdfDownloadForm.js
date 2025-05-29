@@ -9,7 +9,7 @@ const PdfDownloadForm = ({ pdfYear, setPdfYear, onDownloadPdf }) => {
     const { t } = useTranslation();
 
     return (
-        <Card className="mb-4">
+        <Card className="mb-4 form-range">
             <Card.Body>
                 <Form>
                     <Form.Group className="mb-3">
@@ -21,7 +21,7 @@ const PdfDownloadForm = ({ pdfYear, setPdfYear, onDownloadPdf }) => {
                             onChange={(e) => setPdfYear(e.target.value)}
                         />
                     </Form.Group>
-                    <Button onClick={onDownloadPdf}>
+                    <Button className="stats-btn" onClick={onDownloadPdf}>
                         {t("download-pdf")}
                     </Button>
                 </Form>
