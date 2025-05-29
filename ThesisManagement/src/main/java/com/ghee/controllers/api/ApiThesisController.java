@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -138,10 +140,12 @@ public class ApiThesisController {
         }
     }
 
-    @PostMapping("/{id}/upload-file")
+    @PostMapping(path = "/{id}/upload-file",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> uploadThesisFile(
             @PathVariable(value = "id") long id,
-            @ModelAttribute ThesisFileRequest dto,
+            @RequestParam(value = "thesisFile") MultipartFile thesisFile,
             Principal principal) {
         logger.log(Level.INFO, "Received request to upload file for thesis ID: {0}", id);
 
@@ -152,6 +156,8 @@ public class ApiThesisController {
         }
 
         try {
+            ThesisFileRequest dto = new ThesisFileRequest();
+            dto.setFile(thesisFile);
             dto.setThesisId(id);
             ThesisFileResponse response = this.thesisService.uploadThesisFile(dto, username);
             logger.log(Level.INFO, "Thesis file uploaded successfully for thesis ID: {0}", id);
@@ -290,7 +296,9 @@ public class ApiThesisController {
         }
     }
     
-    @GetMapping("/{id}/file")
+    @GetMapping(path = "/{id}/file",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getFileUrlByThesisId (
             @PathVariable(value = "id") long id,
             Principal principal

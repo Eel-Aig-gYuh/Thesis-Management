@@ -22,6 +22,7 @@ public interface UserService extends UserDetailsService {
     List<Users> getUserByUserRole(String userRole);
     Map<String, Object> getAllUsers(Map<String, String> params);
     
+    Users uploadAvatar(Long id, MultipartFile avatar);
     Users createOrUpdate(Users u);
     void deleteUser(long id);
     

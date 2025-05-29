@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -83,6 +84,30 @@ public class ApiUserController {
             logger.log(Level.INFO, "User created successfully: {0}", u.getUsername());
         
             return new ResponseEntity<>(u, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to create user: {0}", e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping(path = "/users/upload-avatar",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> uploadAvatar(
+            @RequestParam(value="avatar") MultipartFile avatar,
+            Principal principal
+    ) {
+        logger.log(Level.INFO, "Received request to upload avatar: {0}");
+        
+        Users u = this.userService.getUserByUsername(principal.getName());
+        if (u == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            Users response = this.userService.uploadAvatar(u.getId(), avatar);
+            logger.log(Level.INFO, "User created successfully: {0}", u.getUsername());
+        
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to create user: {0}", e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

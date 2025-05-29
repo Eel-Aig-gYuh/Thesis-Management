@@ -33,6 +33,13 @@ public class DepartmentRepositoryImpl implements DepartmentRepository{
     private LocalSessionFactoryBean factory;
 
     @Override
+    public Departments findById(long id) {
+        Session s = this.factory.getObject().getCurrentSession();
+        
+        return s.get(Departments.class, id);
+    }
+    
+    @Override
     public Map<String, Object> getDepartments() {
         Session s = this.factory.getObject().getCurrentSession();
         CriteriaBuilder b = s.getCriteriaBuilder();

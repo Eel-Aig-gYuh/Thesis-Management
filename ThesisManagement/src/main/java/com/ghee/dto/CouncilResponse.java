@@ -23,6 +23,7 @@ public class CouncilResponse {
     private List<CouncilThesisDTO> theses;
     private ThesisUserDTO createdBy;
     private Date createdAt;
+    private String department;
 
     public CouncilResponse() {
     }
@@ -176,6 +177,20 @@ public class CouncilResponse {
      */
     public void setIsLocked(boolean isLocked) {
         this.isLocked = isLocked;
+    }
+
+    /**
+     * @return the department
+     */
+    public String getDepartment() {
+        return department;
+    }
+
+    /**
+     * @param department the department to set
+     */
+    public void setDepartment(String department) {
+        this.department = department;
     }
     
     

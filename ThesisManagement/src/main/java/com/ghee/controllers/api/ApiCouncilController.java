@@ -137,6 +137,9 @@ public class ApiCouncilController {
     @GetMapping("/")
     public ResponseEntity<?> getCouncils(
             @RequestParam(name = "page", defaultValue = "1") int page, 
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "order", defaultValue = "desc") String order,
             Principal principal) {
         logger.log(Level.INFO, "Received request to get councils, page: {0}", page);
         
@@ -149,6 +152,9 @@ public class ApiCouncilController {
         try {
             Map<String, String> params = new HashMap<>();
             params.put("page", String.valueOf(page));
+            if (name != null && !name.isEmpty()) params.put("name", name);
+            if (status != null && !status.isEmpty()) params.put("status", status);
+            params.put("order", order);
             
             Map<String, Object> response = this.councilService.getCouncils(params);
             return new ResponseEntity<>(response, HttpStatus.OK);

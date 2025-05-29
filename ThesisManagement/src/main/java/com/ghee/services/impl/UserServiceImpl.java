@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -164,6 +165,43 @@ public class UserServiceImpl implements UserService{
         Users createdUser = this.userRepo.createUser(u);
         logger.log(Level.INFO, "User created successfully {0}", createdUser.getUsername());
         return createdUser;
+    }
+
+    @Override
+    public Users uploadAvatar(Long id, MultipartFile avatar) {
+        logger.log(Level.INFO, "Uploading avatar with username: {0}");
+        Users currentUser = this.getUserById(id);
+        
+        Users u = new Users();
+        u.setId(currentUser.getId());
+        u.setEmail(currentUser.getEmail());
+        u.setFirstname(currentUser.getFirstname());
+        u.setLastname(currentUser.getLastname());
+        u.setUsername(currentUser.getUsername());
+        u.setPassword(currentUser.getPassword());
+        u.setRole(currentUser.getRole());
+        
+        if (!avatar.isEmpty()) {
+            String contentType = avatar.getContentType();
+            if (contentType != null && contentType.startsWith("image/")) {
+                try {
+                    logger.log(Level.INFO, "Uploading avatar to Cloudinary for user: {0}");
+                    Map res = cloudinary.uploader().upload(avatar.getBytes(),
+                            ObjectUtils.asMap("resource_type", "auto"));
+                    u.setAvatar(res.get("secure_url").toString());
+                    logger.log(Level.INFO, "New avatar uploaded successfully: {0}", u.getAvatar());
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, "Failed to upload avatar for user: {0}", ex);
+                    throw new RuntimeException("Failed to upload avatar", ex);
+                }
+            } else {
+                throw new IllegalArgumentException("Chỉ được phép upload file hình ảnh!");
+            }
+        }
+        logger.log(Level.INFO, "user id new " + u.getId());
+        Users updatedUser = this.userRepo.createOrUpdate(u);
+        logger.log(Level.INFO, "User created successfully {0}", updatedUser.getUsername());
+        return updatedUser;
     }
     
     @Override

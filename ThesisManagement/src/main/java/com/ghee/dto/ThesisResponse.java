@@ -24,6 +24,7 @@ public class ThesisResponse {
     private ThesisUserDTO createdBy;
     private Date createdAt;
     private BigDecimal averageScore;
+    private DepartmentDTO.DepartmentResponse department;
 
     public ThesisResponse(Long id, String title, ThesisStatus status, List<ThesisUserDTO> students, List<ThesisUserDTO> supervisors, ThesisUserDTO createdBy, Date createdAt, BigDecimal averageScore) {
         this.id = id;
@@ -178,6 +179,20 @@ public class ThesisResponse {
      */
     public void setAverageScore(BigDecimal averageScore) {
         this.averageScore = averageScore;
+    }
+
+    /**
+     * @return the department
+     */
+    public DepartmentDTO.DepartmentResponse getDepartment() {
+        return department;
+    }
+
+    /**
+     * @param department the department to set
+     */
+    public void setDepartment(DepartmentDTO.DepartmentResponse department) {
+        this.department = department;
     }
     
     

@@ -13,6 +13,15 @@ public class DepartmentDTO {
         private Long id;
         private String name;
 
+        public DepartmentResponse(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public DepartmentResponse() {
+        }
+
+        
         /**
          * @return the id
          */

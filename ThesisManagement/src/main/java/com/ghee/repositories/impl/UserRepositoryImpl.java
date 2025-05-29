@@ -218,8 +218,8 @@ public class UserRepositoryImpl implements UserRepository{
         else {
             logger.log(Level.INFO, "Starting transaction for updating user: {0}", u.getUsername());
             s.merge(u);
+            s.flush();
         }
-        s.refresh(u);
         
         return u;
     }

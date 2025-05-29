@@ -4,6 +4,7 @@
  */
 package com.ghee.repositories;
 
+import com.ghee.pojo.Departments;
 import java.util.Map;
 
 /**
@@ -12,4 +13,6 @@ import java.util.Map;
  */
 public interface DepartmentRepository {
     Map<String, Object> getDepartments ();
+    
+    Departments findById(long id);
 }

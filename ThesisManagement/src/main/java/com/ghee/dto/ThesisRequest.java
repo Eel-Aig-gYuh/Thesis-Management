@@ -18,6 +18,7 @@ public class ThesisRequest {
     @NotNull private List<Long> studentIds;
     @NotNull private List<Long> supervisorIds;
     private ThesisStatus status;
+    private Long departmentId;
 
     /**
      * @return the title
@@ -87,6 +88,20 @@ public class ThesisRequest {
      */
     public void setSemester(String semester) {
         this.semester = semester;
+    }
+
+    /**
+     * @return the departmentId
+     */
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    /**
+     * @param departmentId the departmentId to set
+     */
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
     
 }

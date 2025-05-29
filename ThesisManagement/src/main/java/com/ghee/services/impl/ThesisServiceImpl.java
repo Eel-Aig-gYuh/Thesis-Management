@@ -7,6 +7,7 @@ package com.ghee.services.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.ghee.dto.AverageScoreResponse;
+import com.ghee.dto.DepartmentDTO;
 import com.ghee.dto.ThesisFileRequest;
 import com.ghee.dto.ThesisFileResponse;
 import com.ghee.dto.ThesisRequest;
@@ -17,6 +18,7 @@ import com.ghee.dto.ThesisUserDTO;
 import com.ghee.enums.CouncilMemberRole;
 import com.ghee.enums.ThesisStatus;
 import com.ghee.enums.UserRole;
+import com.ghee.pojo.Departments;
 import com.ghee.pojo.Scores;
 import com.ghee.pojo.Theses;
 import com.ghee.pojo.ThesisAdvisors;
@@ -24,6 +26,7 @@ import com.ghee.pojo.ThesisFiles;
 import com.ghee.pojo.ThesisReviewers;
 import com.ghee.pojo.ThesisStudents;
 import com.ghee.pojo.Users;
+import com.ghee.repositories.DepartmentRepository;
 import com.ghee.repositories.ScoreRepository;
 import com.ghee.repositories.ThesisRepository;
 import com.ghee.repositories.UserRepository;
@@ -83,6 +86,9 @@ public class ThesisServiceImpl implements ThesisService {
     @Autowired
     private Cloudinary cloudinary;
 
+    @Autowired
+    private DepartmentRepository departRepo;
+
     // ====================== GHEE
     @Override
     public ThesisResponse getThesisById(String username, long id) {
@@ -135,10 +141,9 @@ public class ThesisServiceImpl implements ThesisService {
         List<Theses> theses = (List<Theses>) result.get("theses");
         result.put("theses", theses.stream().map(this::mapToResponseThesisDTO).collect(Collectors.toList()));
 
-        return result;    
+        return result;
     }
 
-    
     @Override
     public Map<String, Object> getFileUrlsByThesisId(String username, long thesisId) {
         Users u = this.userRepo.getUserByUsername(username);
@@ -180,6 +185,12 @@ public class ThesisServiceImpl implements ThesisService {
             throw new IllegalArgumentException("Maximum 2 supervisors allowed");
         }
 
+        Departments department = this.departRepo.findById(dto.getDepartmentId());
+        if (department == null) {
+            logger.log(Level.WARNING, "Department not found: {0}", dto.getDepartmentId());
+            throw new IllegalArgumentException("Department not found: " + dto.getDepartmentId());
+        }
+
         // Tạo thesis
         Theses thesis = new Theses();
         thesis.setTitle(dto.getTitle());
@@ -187,6 +198,7 @@ public class ThesisServiceImpl implements ThesisService {
         thesis.setStatus(dto.getStatus() != null ? String.valueOf(dto.getStatus()) : String.valueOf(ThesisStatus.DRAFT));
         thesis.setCreatedBy(createdBy);
         thesis.setCreatedAt(DateUtils.getTodayWithoutTime());
+        thesis.setDepartmentId(department);
 
         Set<ThesisStudents> studentAssignments = new HashSet<>();
         for (Long id : dto.getStudentIds()) {
@@ -286,6 +298,10 @@ public class ThesisServiceImpl implements ThesisService {
 
         if (dto.getSemester() != null) {
             thesis.setSemester(dto.getSemester());
+        }
+
+        if (dto.getDepartmentId() != null) {
+            thesis.setDepartmentId(this.departRepo.findById(dto.getDepartmentId()));
         }
 
         // Cập nhật danh sách sinh viên
@@ -707,38 +723,50 @@ public class ThesisServiceImpl implements ThesisService {
         }
 
         MultipartFile file = dto.getFile();
+
         if (file == null || file.isEmpty()) {
             logger.log(Level.WARNING, "No file provided for upload");
             throw new IllegalArgumentException("File is required");
         }
 
-        try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "resource_type", "auto",
-                    "folder", "thesis_files",
-                    "public_id", file.getOriginalFilename().replace('.', 'a'), // optional
-                    "overwrite", true
-            ));
-
-            String fileUrl = (String) uploadResult.get("secure_url");
-            String fileName = file.getOriginalFilename();
-
-            ThesisFiles thesisFile = new ThesisFiles(fileUrl, fileName, DateUtils.getTodayWithoutTime(), thesis, student);
-            ThesisFiles savedFile = this.thesisRepo.createOrUpdate(thesisFile);
-
-            logger.log(Level.INFO, "Thesis file uploaded successfully: {0}", fileName);
-            return new ThesisFileResponse(
-                    savedFile.getId(),
-                    savedFile.getThesisId().getId(),
-                    savedFile.getStudentId().getId(),
-                    savedFile.getFileUrl(),
-                    savedFile.getFileName(),
-                    savedFile.getSubmittedAt()
-            );
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to upload file to Cloudinary: {0}", e.getMessage());
-            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+        ThesisFiles thesisFile = new ThesisFiles();
+        logger.log(Level.INFO, "File type của file " + file.getContentType());
+        if (!file.isEmpty()) {
+            String contentType = file.getContentType();
+            if (contentType != null
+                    && (contentType.equals("application/pdf")
+                    || contentType.equals("application/msword")
+                    || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))) {
+                try {
+                    logger.log(Level.INFO, "Uploading avatar to Cloudinary for user: {0}");
+                    Map res = cloudinary.uploader().upload(file.getBytes(),
+                            ObjectUtils.asMap(
+                                    "resource_type", "raw",
+                                    "upload_preset", "ml_default"));
+                    thesisFile.setFileUrl(res.get("secure_url").toString());
+                    logger.log(Level.INFO, "New avatar uploaded successfully: {0}");
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, "Failed to upload avatar for user: {0}", ex);
+                    throw new RuntimeException("Failed to upload avatar", ex);
+                }
+            } else {
+                throw new IllegalArgumentException("Chỉ được phép upload file hình ảnh!");
+            }
         }
+        thesisFile.setFileName(file.getOriginalFilename());
+        thesisFile.setSubmittedAt(DateUtils.getTodayWithoutTime());
+        thesisFile.setThesisId(thesis);
+        thesisFile.setStudentId(student);
+        ThesisFiles savedFile = this.thesisRepo.createOrUpdate(thesisFile);
+
+        return new ThesisFileResponse(
+                savedFile.getId(),
+                savedFile.getThesisId().getId(),
+                savedFile.getStudentId().getId(),
+                savedFile.getFileUrl(),
+                savedFile.getFileName(),
+                savedFile.getSubmittedAt()
+        );
     }
 
     private ThesisResponse mapToResponseThesisDTO(Theses thesis) {
@@ -795,6 +823,14 @@ public class ThesisServiceImpl implements ThesisService {
                 createdBy.getEmail(),
                 null
         ));
+
+        // Ánh xạ department
+        if (thesis.getDepartmentId() != null) {
+            dto.setDepartment(new DepartmentDTO.DepartmentResponse(
+                    thesis.getDepartmentId().getId(),
+                    thesis.getDepartmentId().getName()
+            ));
+        }
 
         return dto;
     }

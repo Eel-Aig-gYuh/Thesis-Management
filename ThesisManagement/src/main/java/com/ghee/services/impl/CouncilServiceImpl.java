@@ -17,10 +17,12 @@ import com.ghee.enums.UserRole;
 import com.ghee.pojo.CouncilMembers;
 import com.ghee.pojo.CouncilTheses;
 import com.ghee.pojo.Councils;
+import com.ghee.pojo.Departments;
 import com.ghee.pojo.Theses;
 import com.ghee.pojo.ThesisStudents;
 import com.ghee.pojo.Users;
 import com.ghee.repositories.CouncilRepository;
+import com.ghee.repositories.DepartmentRepository;
 import com.ghee.repositories.ThesisRepository;
 import com.ghee.repositories.UserRepository;
 import com.ghee.services.CouncilService;
@@ -73,6 +75,9 @@ public class CouncilServiceImpl implements CouncilService {
 
     @Autowired
     private MailService mailService;
+    
+    @Autowired
+    private DepartmentRepository departRepo;
 
     @Override
     public CouncilResponse getCouncilById(long id) {
@@ -489,6 +494,9 @@ public class CouncilServiceImpl implements CouncilService {
         dto.setDefenseLocation(council.getDefenseLocation());
         dto.setStatus(CouncilStatus.valueOf(council.getStatus()));
         dto.setCreatedAt(council.getCreatedAt());
+        String department = council.getCouncilThesesSet().stream().findFirst()
+                .map(coucilId -> coucilId.getThesisId().getDepartmentId().getName()).orElse(null);
+        dto.setDepartment(department);
 
         dto.setMembers(council.getCouncilMembersSet().stream()
                 .map(member -> new CouncilMemberResponseDTO(
