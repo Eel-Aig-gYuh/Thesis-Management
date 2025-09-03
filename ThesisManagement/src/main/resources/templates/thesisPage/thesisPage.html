@@ -1,0 +1,97 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Quản Trị Khóa Luận</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body>
+    <main class="container">
+        <div th:replace="base :: header"></div>
+
+        <div>
+            <h2 class="text-center text-info mt-3">Quản trị khóa luận</h2>
+        </div>
+
+        <form th:action="@{/admin/thesis/}" class="p-3 bg-light rounded shadow-sm">
+            <div class="row g-2 align-items-end">
+                <!-- Lọc theo title -->
+                <div class="col-md-4">
+                    <input type="text" class="form-control" placeholder="Tìm theo tiêu đề..." name="title" th:value="${param.title}">
+                </div>
+                <!-- Lọc theo status -->
+                <div class="col-md-3">
+                    <select class="form-select" name="status">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option th:each="s:${status}" th:value="${s}" th:text="${s.displayName}" th:selected="${param.status == s}"></option>
+                    </select>
+                </div>
+
+                <!-- Sắp xếp theo ngày -->
+                <div class="col-md-2">
+                    <select class="form-select" name="order">
+                        <option value="desc" th:selected="${param.order == 'desc'}">Mới nhất</option>
+                        <option value="asc" th:selected="${param.order == 'asc'}">Cũ nhất</option>
+                    </select>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
+                </div>
+                <div class="col-md-2">
+                    <a th:href="@{/admin/thesis/create}" class="btn btn-success">+ Thêm Khoá luận</a>
+                </div>  
+            </div>
+        </form>
+
+        <form th:action="@{/admin/thesis}">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Id người tạo</th>
+                            <th>Tiêu đề</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="t:${theses}">
+                            <td th:text="${t.id}"></td>
+                            <td th:text="${t.createdBy}"></td>
+                            <td th:text="${t.title}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${t.status.equals('REJECTED') ? 'bg-danger' : t.status.equals('REGISTERED') ? 'bg-primary' : t.status.equals('CANCELLED') ? 'bg-warning': t.status.equals('APPROVED') ? 'bg-success' : 'bg-info'}" th:text="${t.status}"></span>
+                            </td>
+                            <td th:text="${t.createdAt}"></td>
+                            <td>
+                                <button class="btn btn-danger" th:onclick="'deleteThesis(\'' + @{/api/thesis} + '\', ' + ${t.id} + ')'" >&times;</button>
+                                <a class="btn btn-success" th:href="@{${t.id}}">&#128296;️</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav th:if="${theses.size() > 0}">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/thesis(page=${currentPage - 1}, kw=${kw})}">Trước</a>
+                    </li>
+                    <li class="page-item">
+                        <span class="page-link">Trang [[${currentPage}]]</span>
+                    </li>
+                    <li class="page-item" th:classappend="${theses.size() < 10} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/thesis(page=${currentPage + 1}, kw=${kw})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </form> 
+
+        <div th:replace="base :: footer"></div>
+    </main>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

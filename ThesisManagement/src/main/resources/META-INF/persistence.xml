@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+  <!-- Define Persistence Unit -->
+  <persistence-unit name="my_persistence_unit">
+    <class>com.ghee.pojo.CouncilTheses</class>
+    <class>com.ghee.pojo.Theses</class>
+    <class>com.ghee.pojo.Notifications</class>
+    <class>com.ghee.pojo.ThesisReviewers</class>
+    <class>com.ghee.pojo.ThesisAdvisors</class>
+    <class>com.ghee.pojo.Councils</class>
+    <class>com.ghee.pojo.Users</class>
+    <class>com.ghee.pojo.CouncilMembers</class>
+    <class>com.ghee.pojo.Criteria</class>
+    <class>com.ghee.pojo.ThesisStudents</class>
+    <class>com.ghee.pojo.Scores</class>
+    <class>com.ghee.pojo.ThesisFiles</class>
+    <class>com.ghee.pojo.ThesisCriteria</class>
+    <class>com.ghee.pojo.Departments</class>
+  </persistence-unit>
+</persistence>

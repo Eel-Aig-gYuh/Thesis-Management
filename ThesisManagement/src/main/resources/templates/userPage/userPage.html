@@ -1,0 +1,109 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Quản Trị Người Dùng</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body>
+    <main class="container">
+        <div th:replace="base :: header"></div>
+
+        <div>
+            <h2 class="text-center text-info mt-3">Quản trị người dùng</h2>
+        </div>
+
+        <form th:action="@{/admin/users/}" class="p-3 bg-light rounded shadow-sm">
+            <div class="row g-2 align-items-end">
+                <!-- Lọc theo username -->
+                <div class="col-md-4">
+                    <input type="text" class="form-control" placeholder="Tìm theo username..." name="username" th:value="${param.username}">
+                </div>
+                <!-- Lọc theo role -->
+                <div class="col-md-3">
+                    <select class="form-select" name="role">
+                        <option value="">-- Tất cả vai trò --</option>
+                        <option th:each="r:${roles}" th:value="${r}" th:text="${r.displayName}" th:selected="${param.role == r}"></option>
+                    </select>
+                </div>
+
+                <!-- Sắp xếp theo ngày -->
+                <div class="col-md-2">
+                    <select class="form-select" name="order">
+                        <option value="desc" th:selected="${param.order == 'desc'}">Mới nhất</option>
+                        <option value="asc" th:selected="${param.order == 'asc'}">Cũ nhất</option>
+                    </select>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary me-2">Tìm kiếm</button>
+                </div>
+                <div class="col-md-2">
+                    <a th:href="@{/admin/users/create}" class="btn btn-success">+ Thêm User</a>
+                </div>  
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên tài khoản</th>
+                            <th>Tên</th>
+                            <th>Họ và lót</th>
+                            <th>Avatar</th>
+                            <th>Email</th>
+                            <th>Chuyên ngành</th>
+                            <th>Role</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u:${users}">
+                            <td th:text="${u.id}"></td>
+                            <td th:text="${u.username}"></td>
+                            <td th:text="${u.firstname}"></td>
+                            <td th:text="${u.lastname}"></td>
+                            <td>
+                                <img th:src="${u.avatar}" 
+                                     alt="Avatar Logo" style="width:40px;" class="rounded-pill"> 
+                            </td>
+                            <td th:text="${u.email}"></td>
+                            <td th:text="${u.major}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${u.role.equals('ROLE_ADMIN') ? 'bg-danger' : u.role.equals('ROLE_GIAOVU') ? 'bg-primary' : u.role.equals('ROLE_GIANGVIEN') ? 'bg-warning':'bg-info'}" th:text="${u.role}"></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success" th:if="${u.isActive}">Đang hoạt động</span>
+                                <span class="badge bg-secondary" th:if="${!u.isActive}">Đã khóa</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" th:onclick="'deleteUser(\'' + @{/admin/users} + '\', ' + ${u.id} + ')'" >&times;</button>
+                                <a class="btn btn-success" th:href="@{${u.id}}">&#128296;️</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav th:if="${users.size() > 0}">
+                <ul class="pagination">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users/?page=${currentPage-1}}">Trước</a>
+                    </li>
+                    <li class="page-item">
+                        <span class="page-link">Trang [[${currentPage}]]</span>
+                    </li>
+                    <li class="page-item" th:classappend="${users.size() < 5} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/users/?page=${currentPage+1}}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </form>
+
+        <div th:replace="base :: footer"></div>
+    </main>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
