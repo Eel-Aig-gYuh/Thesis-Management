@@ -1,0 +1,116 @@
+.council-title-list {
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 8px #46344E;
+}
+
+.council-department{
+    padding: 10px 20px 20px 30px;
+    border-top: 5px solid black;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.content-info {
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom: 4px solid black;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 8px #46344E;
+}
+
+.council-card:hover {
+    transform: translateY(-5px);
+}
+
+.council-card {
+    border-radius: 0.7rem;
+    transition: transform 0.2s ease;
+    border-bottom: 5px solid #46344E;
+    border-left: 5px solid #46344E;
+}
+
+.council-members-editor {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.council-members-editor h5 {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.member-row {
+    background-color: #ffffff;
+    padding: 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.member-row:hover {
+    background-color: #f1f3f5;
+}
+
+.lecturer-display {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    color: #495057;
+}
+
+.lecturer-display.has-value {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.lecturer-display.duplicate {
+    color: #dc3545; /* Màu đỏ cho tên trùng lặp */
+    border-color: #dc3545; /* Viền đỏ để nổi bật */
+}
+
+.lecturer-display:hover {
+    background-color: #e9ecef;
+}
+
+.role-select {
+    font-size: 0.9rem;
+    border-radius: 4px;
+}
+
+.remove-btn {
+    font-weight: bold;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-btn:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+button.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+button.btn-secondary:hover {
+    background-color: #5a6268;
+}

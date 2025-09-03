@@ -1,0 +1,127 @@
+/* Header */
+.curved-header {
+  background-color: black;
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+  padding-bottom: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 1100; /* Trên sidebar */
+}
+
+.curved-navbar {
+  background-color: transparent !important;
+}
+
+.nav-link-custom {
+  font-weight: 500;
+  margin: 0 10px;
+  color: #000 !important;
+}
+
+.nav-link-custom.active {
+  border-bottom: 3px solid #D79922;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 100%; /* Chiếm toàn bộ chiều rộng cột */
+  display: flex;
+  flex-direction: column;
+  padding: 0rem;
+  min-height: 100%; /* Chiếm chiều cao cột */
+  border-radius: 1rem;
+}
+
+/* Responsive: Ẩn sidebar trên màn hình nhỏ */
+@media (max-width: 768px) {
+  .sidebar-col {
+    display: none; /* Ẩn cột sidebar */
+  }
+  .main-content {
+    margin-left: 0; /* Không chừa chỗ cho sidebar */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+  }
+}
+
+.chat-list-container {
+  border-radius: 1rem;
+  border: 3px solid black;
+  box-shadow: 0 4px 12px #FAED26;
+}
+
+.sidebar-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  background-color: black;
+  padding: 1rem;
+  border-radius: 0.7rem;
+  box-shadow: 0 4px 12px #FAED26;
+}
+
+.sidebar-menu {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sidebar-item {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sidebar-item:hover {
+  background-color: #5A5560;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.sidebar-div {
+  background-color: black;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px #FAED26;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.sidebar-parent {
+  font-weight: bold;
+  color: #f8f9fa;
+  padding: 6px 0;
+}
+
+.sidebar-submenu .sidebar-item {
+  font-size: 0.75rem;
+  color: #e0e0e0;
+  margin-left: 10px;
+  transition: all 0.2s;
+}
+
+.sidebar-submenu .sidebar-item:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.logout-button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 8px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: #dc2626;
+}
