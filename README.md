@@ -20,6 +20,13 @@
 
 ## Overview
 This is a full-stack web application for managing thesis scores, featuring a Java-based back-end using Spring Boot and Hibernate, and a Node.js-based front-end for user interface. The system allows council members to submit and manage scores for theses, integrated with a relational database (e.g., MySQL). 
+<p align="center">
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-07%20154824.png" width="250" height="250"/>
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-07%20154941.png" width="250" height="250"/>
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-07%20155448.png" width="250" height="250"/>
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-07%20155501.png" width="250" height="250"/>
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-07%20155515.png" width="250" height="250"/>
+</p>
 
 ## Features
 - User authentication and authorization (e.g., `ROLE_COUNCIL_MEMBER`).
