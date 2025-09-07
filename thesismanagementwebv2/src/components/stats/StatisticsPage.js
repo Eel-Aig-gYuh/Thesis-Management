@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-bootstrap";
 import { MyUserContext } from "../../configs/MyContexts";
@@ -9,18 +9,33 @@ import ScoreStatsTable from "./ScoreStatsTable";
 import { saveAs } from "file-saver";
 import { authApis, endpoints } from "../../configs/Apis";
 import "./style.css";
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
-// Component StatisticsPage: Quản lý thống kê điểm, tần suất, và tải PDF
+// Đăng ký các thành phần cần thiết của Chart.js
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
 const StatisticsPage = () => {
-    const { t } = useTranslation(); // Dịch văn bản
-    const user = useContext(MyUserContext); // Người dùng hiện tại
-    const [startYear, setStartYear] = useState(""); // Năm bắt đầu
-    const [endYear, setEndYear] = useState(""); // Năm kết thúc
-    const [pdfYear, setPdfYear] = useState(""); // Năm tải PDF
-    const [scoreStats, setScoreStats] = useState([]); // Thống kê điểm
-    const [participationStats, setParticipationStats] = useState([]); // Thống kê tần suất
-    const [error, setError] = useState(""); // Lỗi
-    const [loading, setLoading] = useState(false); // Loading
+    const { t } = useTranslation();
+    const user = useContext(MyUserContext);
+    const [startYear, setStartYear] = useState("");
+    const [endYear, setEndYear] = useState("");
+    const [pdfYear, setPdfYear] = useState("");
+    const [scoreStats, setScoreStats] = useState([]);
+    const [participationStats, setParticipationStats] = useState([]);
+
+    const [showScoreStats, setShowScoreStats] = useState(false);
+    const [showParticipationStats, setShowParticipationStats] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const toggleShowScoreStats = () => {
+        setShowScoreStats(!showScoreStats);
+    }
+
+    const toggleShowParticipationStats = () => {
+        setShowParticipationStats(!showParticipationStats);
+    }
 
     // Kiểm tra quyền
     const canView = user?.role === "ROLE_GIAOVU" || user?.role === "ROLE_ADMIN";
@@ -40,13 +55,12 @@ const StatisticsPage = () => {
         }
         setLoading(true);
         try {
-            console.log("Gửi request để thống kê điểm");
-            const response = await authApis().post(endpoints['statistic/score'], {
-                params: { startYear, endYear },
-            });
+            const params = { yearStart: startYear, yearEnd: endYear };
+            console.log("Gửi request thông kê điểm: ", params);
+            const response = await authApis().post(endpoints["statistic/score"], params);
             setScoreStats(response.data);
             setError("");
-            console.log("Phản hồi từ API", response.data);
+            console.log("Score stats response:", response.data);
         } catch (err) {
             setError(err.response?.data?.message || t("fetch-score-stats-error"));
         } finally {
@@ -66,15 +80,12 @@ const StatisticsPage = () => {
         }
         setLoading(true);
         try {
-            console.log("Gửi request để thống kê tần suất");
-
-            const response = await authApis().post(endpoints['statistic/pariticipation'], {
-                params: { startYear, endYear },
-            });
+            const params = { yearStart: startYear, yearEnd: endYear };
+            console.log("Gửi request thông kê tần suất: ", params);
+            const response = await authApis().post(endpoints["statistic/pariticipation"], params);
             setParticipationStats(response.data);
             setError("");
-
-            console.log("Phản hổi từ API", response.data);
+            console.log("Participation stats response:", response.data);
         } catch (err) {
             setError(err.response?.data?.message || t("fetch-participation-stats-error"));
         } finally {
@@ -94,10 +105,11 @@ const StatisticsPage = () => {
         }
         setLoading(true);
         try {
-            const response = await authApis().post(endpoints['statistic/get-pdf'], {
-                params: { year: pdfYear },
-                responseType: "blob",
-            });
+            const response = await authApis().post(
+                endpoints["statistic/get-pdf"],
+                { year: pdfYear },
+                { responseType: "blob" }
+            );
             const blob = new Blob([response.data], { type: "application/pdf" });
             saveAs(blob, `average_scores_${pdfYear}.pdf`);
             setError("");
@@ -110,13 +122,12 @@ const StatisticsPage = () => {
 
     return (
         <div className="container mt-4 p-4 bg-black rounded-4">
-
             <h2 className="stats-title-list text-center mb-5 fw-bold" style={{ color: "white" }}>
                 {t("statistics")}
             </h2>
 
             {error && <Alert variant="danger">{error}</Alert>}
-            {loading && <div className="text-center">{t("loading")}</div>}
+            {loading && <div className="text-center text-white">{t("loading")}</div>}
 
             {/* Form nhập năm và nút thống kê */}
             <YearRangeForm
@@ -126,20 +137,22 @@ const StatisticsPage = () => {
                 setEndYear={setEndYear}
                 onFetchScoreStats={fetchScoreStats}
                 onFetchParticipationStats={fetchParticipationStats}
+                showScoreStats={toggleShowScoreStats}
+                showParticipantStats={toggleShowParticipationStats}
             />
 
             {/* Form tải PDF */}
-            <PdfDownloadForm
-                pdfYear={pdfYear}
-                setPdfYear={setPdfYear}
-                onDownloadPdf={downloadPdf}
-            />
+            <PdfDownloadForm pdfYear={pdfYear} setPdfYear={setPdfYear} onDownloadPdf={downloadPdf} />
 
-            {/* Bảng thống kê điểm */}
-            <ScoreStatsTable scoreStats={scoreStats} />
+            {/* Bảng và biểu đồ thống kê điểm */}
+            {showScoreStats && (
+                <ScoreStatsTable scoreStats={scoreStats} />
+            )}
 
-            {/* Bảng thống kê tần suất */}
-            <ParticipationStatsTable participationStats={participationStats} />
+            {/* Bảng và biểu đồ thống kê tần suất */}
+            {showParticipationStats && (
+                <ParticipationStatsTable participationStats={participationStats} />
+            )}
         </div>
     );
 };

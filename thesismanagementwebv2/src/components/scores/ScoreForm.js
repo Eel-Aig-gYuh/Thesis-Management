@@ -7,6 +7,7 @@ import { MyUserContext } from "../../configs/MyContexts";
 import MySpinner from "../layouts/MySpinner";
 import ConfirmModal from "../utils/ConfirmModal";
 import { submitCouncilScores } from "../../services/scoreService";
+import "./style.css";
 
 // Component ScoreForm: Hiển thị bảng để nhập điểm cho các khóa luận
 // Props:
@@ -163,7 +164,7 @@ const ScoreForm = ({ thesesData, councilStatus }) => {
     }
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4 card-container">
             <h2 className="text-center mb-4">{t("grade-theses")}</h2>
             {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
             {isLoading && <MySpinner />}

@@ -7,9 +7,10 @@ import { db } from '../../configs/FirebaseConfig';
 import { useToast } from '../contexts/ToastProvider';
 import { Button, Form, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from 'react-i18next';
 import MessageList from "./MessageList";
+import { uploadImageChat } from '../../services/chatService';
 
 const ChatRoom = ({ userId }) => {
     const user = useContext(MyUserContext);
@@ -19,7 +20,9 @@ const ChatRoom = ({ userId }) => {
     const toast = useToast();
     const { t } = useTranslation();
     const nav = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
     const scrollViewRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     const roomId = getRoomId(user?.uid, userId);
 
@@ -46,12 +49,14 @@ const ChatRoom = ({ userId }) => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         if (!newMessage.trim()) return;
 
         try {
             await addDoc(collection(db, 'rooms', roomId, 'messages'), {
                 text: newMessage,
                 senderId: user.uid,
+                type: 'text',
                 timestamp: serverTimestamp(),
             });
 
@@ -59,8 +64,35 @@ const ChatRoom = ({ userId }) => {
         } catch (error) {
             console.error("Lỗi gửi tin nhắn");
             toast(t('chat-send-msg-failure'), "danger");
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    const handleImageUpload = async(e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsLoading(true);
+
+        try {
+            const response = await uploadImageChat(file);
+
+            // lưu ảnh vào firebase
+            await addDoc(collection(db, 'rooms', roomId, 'messages'), {
+                text: response,
+                senderId: user.uid,
+                type: 'image',
+                timestamp: serverTimestamp(),
+            })
+
+            fileInputRef.current.value = null;
+        } catch(err) {
+            toast(t('upload-img-fail'), "warning");
+        } finally { 
+            setIsLoading(false);
+        }
+    }
 
     return (
         <div>
@@ -78,14 +110,27 @@ const ChatRoom = ({ userId }) => {
                         <Form onSubmit={handleSendMessage}>
                             <Form.Group className='d-flex'>
                                 <Form.Control
+                                    type='file'
+                                    accept='image/*'
+                                    onChange={handleImageUpload}
+                                    ref={fileInputRef}
+                                    style={{display: "none"}}
+                                    id='image-upload'
+                                />
+
+                                <label htmlFor='image-upload' className='me-2' style={{alignContent: 'center'}}>
+                                    <FontAwesomeIcon icon={faImage} className='fs-3 text-center' style={{cursor: "pointer", color: isLoading ? "grey": "black"}}/>
+                                </label>
+                                
+                                <Form.Control
                                     type='text'
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder={t('chat-input-msg')}
-                                    required
+                                    disabled={isLoading}
                                 />
 
-                                <Button type='submit' className='thesis-btn ms-2' style={{backgroundColor: "black"}}>
+                                <Button type='submit' className='thesis-btn ms-2' disabled={isLoading} style={{backgroundColor: "black"}}>
                                     <FontAwesomeIcon icon={faPaperPlane} />
                                 </Button>
                             </Form.Group>

@@ -208,18 +208,26 @@ const CouncilDetailPage = () => {
                                         <ul>
                                             {council.theses.map((thesis) => (
                                                 <li key={thesis.id}>
-                                                    {thesis.title}
-                                                    {canGrade(council) && council.status === "SCHEDULED" && (
-                                                        <Button
-                                                            as={Link}
-                                                            to={`/thesis/${thesis.id}`}
-                                                            variant="info"
-                                                            size="sm"
-                                                            className="ms-2"
-                                                        >
-                                                            {t("grade-thesis")}
-                                                        </Button>
-                                                    )}
+                                                    <Row>
+                                                        <Col>
+                                                            {thesis.title}
+                                                        </Col>
+                                                        <Col className="text-end">
+                                                            <div>
+                                                                {canGrade(council) && council.status === "SCHEDULED" && (
+                                                                    <Button
+                                                                        as={Link}
+                                                                        to={`/thesis/${thesis.id}`}
+                                                                        variant="warning"
+                                                                        size="sm"
+                                                                        className="ms-2 thesis-btn"
+                                                                    >
+                                                                        {t("grade-thesis")}
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </Col>
+                                                    </Row>
                                                 </li>
                                             ))}
                                         </ul>
@@ -232,13 +240,13 @@ const CouncilDetailPage = () => {
 
                 <div>
                     <Row>
-                        <Col className="p-2 mb-3" style={{marginLeft: "20px"}}>
+                        <Col className="p-2 mb-3" style={{ marginLeft: "20px" }}>
                             <Link className="btn btn-secondary me-2 thesis-btn" to="/council">
                                 {t("back")}
                             </Link>
                         </Col>
 
-                        <Col className="text-end p-2 mb-3" style={{marginRight: "20px"}}>
+                        <Col className="text-end p-2 mb-3" style={{ marginRight: "20px" }}>
                             {user?.role === "ROLE_GIANGVIEN" && (
                                 <Button
                                     variant="success"

@@ -23,8 +23,12 @@ const ThesisListPage = () => {
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
     const [openAssignBox, setOpenAssignBox] = useState(null);
+    const [showChangeStatusConfirm, setShowChangeStatusConfirm] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [cancelThesisId, setCancelThesisId] = useState(null);
+    const [selectedThesisId, setSelectedThesisId] = useState(null); // New state for thesis ID
+    const [newStatus, setNewStatus] = useState(""); // New state for selected status
+    const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
     const user = useContext(MyUserContext);
 
@@ -37,8 +41,7 @@ const ThesisListPage = () => {
     const fetchFunc = useMemo(() => {
         if (user?.role === "ROLE_GIAOVU") {
             return fetchTheses;
-        }
-        else if (user?.role === "ROLE_SINHVIEN" || user?.role === "ROLE_GIANGVIEN") {
+        } else if (user?.role === "ROLE_SINHVIEN" || user?.role === "ROLE_GIANGVIEN") {
             return fetchMyTheses;
         }
     }, [user?.role]);
@@ -80,22 +83,37 @@ const ThesisListPage = () => {
         resetItems();
     };
 
-    // Handle status change
-    const handleStatusChange = async (thesisId, newStatus) => {
+    // Handle status change selection
+    const handleStatusSelect = (thesisId, value) => {
+        setSelectedThesisId(thesisId);
+        setNewStatus(value);
+        setShowChangeStatusConfirm(true); // Show confirmation modal
+    };
+
+    // Handle status change confirmation
+    const handleStatusChange = async () => {
         if (!user || user.role !== "ROLE_GIAOVU") {
             toast(t("only-giaovu-can-update"), "danger");
+            setShowChangeStatusConfirm(false);
             return;
         }
 
+        setIsLoading(true);
+
         try {
-            await updateThesisStatus(thesisId, { status: newStatus });
-            toast(`Cập nhật trạng thái luận văn thành công: ${t(newStatus.toLowerCase())}`, "success");
+            await updateThesisStatus(selectedThesisId, { status: newStatus });
+            toast(`Status updated successfully: ${t(newStatus.toLowerCase())}`, "success");
             resetItems();
         } catch (error) {
             toast(
-                `Lỗi khi cập nhật trạng thái: ${error.response?.data || error.message}`,
+                `Error updating status: ${error.response?.data || error.message}`,
                 "danger"
             );
+        } finally {
+            setIsLoading(false);
+            setShowChangeStatusConfirm(false);
+            setSelectedThesisId(null);
+            setNewStatus("");
         }
     };
 
@@ -163,12 +181,13 @@ const ThesisListPage = () => {
 
     return (
         <div>
-            <h2 className="theis-title-list text-center mb-4"> {t("thesis-title-list")}</h2>
+            <h2 className="theis-title-list text-center mb-4">{t("thesis-title-list")}</h2>
 
             <Form onSubmit={handleSearch} className="mb-4">
                 <Row className="form-action">
                     <Col md={4}>
-                        <Form.Control className="border-input"
+                        <Form.Control
+                            className="border-input"
                             type="text"
                             placeholder={t("search-by-title")}
                             name="title"
@@ -177,7 +196,12 @@ const ThesisListPage = () => {
                         />
                     </Col>
                     <Col md={3}>
-                        <Form.Select name="status" value={filters.status} className="border-input" onChange={handleFilterChange}>
+                        <Form.Select
+                            name="status"
+                            value={filters.status}
+                            className="border-input"
+                            onChange={handleFilterChange}
+                        >
                             <option value="">{t("all-statuses")}</option>
                             <option value="DRAFT">{t("draft")}</option>
                             <option value="REGISTERED">{t("registered")}</option>
@@ -187,7 +211,12 @@ const ThesisListPage = () => {
                         </Form.Select>
                     </Col>
                     <Col md={3}>
-                        <Form.Select name="order" value={filters.order} className="border-input" onChange={handleFilterChange}>
+                        <Form.Select
+                            name="order"
+                            value={filters.order}
+                            className="border-input"
+                            onChange={handleFilterChange}
+                        >
                             <option value="desc">{t("newest")}</option>
                             <option value="asc">{t("oldest")}</option>
                         </Form.Select>
@@ -202,21 +231,26 @@ const ThesisListPage = () => {
 
             {Object.keys(groupedBySemester).map((semester) => (
                 <div key={semester} className="mb-4">
-                    <h4 className="thesis-semester" style={{ textAlign: "right", fontWeight: "bold", }}>{semester}</h4>
+                    <h4 className="thesis-semester" style={{ textAlign: "right", fontWeight: "bold" }}>
+                        {semester}
+                    </h4>
 
                     <Row>
                         {groupedBySemester[semester].map((thesis) => (
                             <Col key={thesis.id} xs={12} className="mb-5 card-container" style={{ paddingBottom: "10px" }}>
                                 <Card
                                     className="thesis-card px-3 py-2 mt-2"
-                                    style={{
-                                        backgroundColor: "white"
-                                    }}
+                                    style={{ backgroundColor: "white" }}
                                 >
                                     <Card.Title>
-                                        <div className="thesis-card-title"
-                                            style={{ backgroundColor: STATUS_COLORS[thesis.status] || STATUS_COLORS.DRAFT, color: "white" }}>
-                                            <strong> {t(thesis.status.toLowerCase())}</strong>
+                                        <div
+                                            className="thesis-card-title"
+                                            style={{
+                                                backgroundColor: STATUS_COLORS[thesis.status] || STATUS_COLORS.DRAFT,
+                                                color: "white",
+                                            }}
+                                        >
+                                            <strong>{t(thesis.status.toLowerCase())}</strong>
                                         </div>
                                     </Card.Title>
                                     <Card.Body>
@@ -230,10 +264,10 @@ const ThesisListPage = () => {
                                             <Col>
                                                 <CardBody className="thesis-content-container">
                                                     <Card.Text className="mb-2">
-                                                        <strong>{t('status')}: </strong> {t(thesis.status.toLowerCase())}
+                                                        <strong>{t("status")}: </strong> {t(thesis.status.toLowerCase())}
                                                     </Card.Text>
                                                     <Card.Text className="mb-2">
-                                                        <strong>{t('main-thesis-person')} </strong>{" "}
+                                                        <strong>{t("main-thesis-person")} </strong>{" "}
                                                         {thesis.students[0]?.lastname + " " + thesis.students[0]?.firstname}
                                                     </Card.Text>
                                                     <Card.Text className="mb-2">
@@ -241,13 +275,16 @@ const ThesisListPage = () => {
                                                         {thesis.supervisors[0]?.lastname + " " + thesis.supervisors[0]?.firstname}
                                                     </Card.Text>
                                                     <Card.Text className="mb-2">
-                                                        <strong style={{color: `${thesis.reviewers.length === 0 ? '#FF652F' : 'black'}`}}>{t("reviewers")}: </strong>{" "}
+                                                        <strong style={{ color: `${thesis.reviewers.length === 0 ? "#FF652F" : "black"}` }}>
+                                                            {t("reviewers")}: </strong>{" "}
                                                         {thesis.reviewers.length > 0 ? (
                                                             <>
                                                                 {thesis?.reviewers[0]?.lastname + " " + thesis?.reviewers[0]?.firstname}
                                                             </>
                                                         ) : (
-                                                            <div className="fw-semibold" style={{color: "#FF652F", textAlign: "right"}}>{t('not-assign-yet')}</div>
+                                                            <div className="fw-semibold" style={{ color: "#FF652F", textAlign: "right" }}>
+                                                                {t("not-assign-yet")}
+                                                            </div>
                                                         )}
                                                     </Card.Text>
                                                 </CardBody>
@@ -285,7 +322,7 @@ const ThesisListPage = () => {
                                                         <Col>
                                                             <Form.Select
                                                                 value={thesis.status}
-                                                                onChange={(e) => handleStatusChange(thesis.id, e.target.value)}
+                                                                onChange={(e) => handleStatusSelect(thesis.id, e.target.value)}
                                                                 className="mb-2 thesis-btn"
                                                                 disabled={loading || thesis.status === "CANCELLED"}
                                                             >
@@ -310,9 +347,7 @@ const ThesisListPage = () => {
 
                                                 {user && user.role === "ROLE_GIAOVU" && (
                                                     <Row>
-                                                        <Col>
-
-                                                        </Col>
+                                                        <Col></Col>
                                                         <Col>
                                                             <Button
                                                                 variant="success"
@@ -347,6 +382,21 @@ const ThesisListPage = () => {
             ))}
 
             <ConfirmModal
+                show={showChangeStatusConfirm}
+                onHide={() => {
+                    setShowChangeStatusConfirm(false);
+                    setSelectedThesisId(null);
+                    setNewStatus("");
+                }}
+                onConfirm={handleStatusChange}
+                title={t("confirm-update-thesis")}
+                message={t("confirm-update-thesis")}
+                confirmText={t("update")}
+                cancelText={t("cancel")}
+                loading={isLoading}
+            />
+
+            <ConfirmModal
                 show={showConfirm}
                 onHide={() => {
                     setShowConfirm(false);
@@ -355,7 +405,7 @@ const ThesisListPage = () => {
                 onConfirm={handleConfirmCancel}
                 title={t("confirm-cancel-title")}
                 message={t("confirm-cancel-message")}
-                confirmText={t("confirm-cancel-thesis")}
+                confirmText={t("btn-thesis-cancel")}
                 cancelText={t("cancel")}
             />
 

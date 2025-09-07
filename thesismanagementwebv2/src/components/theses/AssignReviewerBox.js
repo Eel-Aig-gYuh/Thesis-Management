@@ -71,6 +71,7 @@ export default function AssignReviewerBox({ thesisId, onSuccess, onCancel }) {
                 message="Bạn có chắc chắn muốn phân công giảng viên này làm phản biện?"
                 confirmText="Phân công"
                 cancelText="Hủy"
+                loading={loading}
             />
         </div>
     );

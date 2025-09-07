@@ -70,7 +70,7 @@ export default function NavbarVertical() {
                   <FontAwesomeIcon icon={faBarcode} style={{ color: "#ffffff", fontSize: "20px", display: "block", paddingTop: "12px" }} />
                 </Col>
                 <Col md={10}>
-                  <SidebarItem label="Danh sách hội đồng" path="/council/" />
+                  <SidebarItem label={t('feat-council-view')} path="/council/" />
                 </Col>
               </Row>
 
@@ -79,7 +79,7 @@ export default function NavbarVertical() {
                   <FontAwesomeIcon icon={faPenToSquare} style={{ color: "#ffffff", fontSize: "20px", display: "block", paddingTop: "12px" }} />
                 </Col>
                 <Col md={10}>
-                  <SidebarItem label="Tạo hội đồng" path="/council/create/" />
+                  <SidebarItem label={t('feat-council-create')} path="/council/create/" />
                 </Col>
               </Row>
             </div>
@@ -107,14 +107,14 @@ export default function NavbarVertical() {
         return (
           <div className='sidebar-div'>
 
-            <Sidebar className='sidebar-item' label="Hướng dẫn" path="/thesis/" />
-            <Sidebar className='sidebar-item' label="Phản biện" path="/council/my-council/" />
+            <Sidebar className='sidebar-item' label={t("feat-thesis-advisor")} path="/thesis/" />
+            <Sidebar className='sidebar-item' label={t("feat-thesis-review")} path="/council/my-council/" />
           </div>
         );
       case 'ROLE_SINHVIEN':
         return (
           <div className='sidebar-div'>
-            <Sidebar className='sidebar-item' label="Khóa luận của tôi" path="/thesis/" />
+            <Sidebar className='sidebar-item' label={t('feat-my-thesis')} path="/thesis/" />
             
             <div className="sidebar-submenu ms-3">
               <Row>

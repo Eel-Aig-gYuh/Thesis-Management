@@ -4,18 +4,18 @@ import { MyDispatcherContext } from '../../configs/MyContexts';
 import Apis, { authApis, endpoints } from '../../configs/Apis';
 import Cookies from 'js-cookie';
 import MySpinner from '../layouts/MySpinner';
-import { Alert, Button, Col, Container, Form, Row, Toast } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
 import Sidebar from '../layouts/Sidebar';
 import NavbarVertical from '../layouts/NavbarVertical';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/index';
 import { useToast } from '../contexts/ToastProvider';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import app, { auth, db } from '../../configs/FirebaseConfig';
+import { auth, db } from '../../configs/FirebaseConfig';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 export default function Login() {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     const info = [{
         title: "Tên tài khoản",
@@ -136,7 +136,7 @@ export default function Login() {
         <Container fluid>
             <Row className="vh-100">
                 {/* Left Nav */}
-                <Col md={2} className="bg-dark text-white p-3">
+                <Col md={2} className="bg-dark rounded-4 text-white p-3">
                     <NavbarVertical />
                 </Col>
 
@@ -150,7 +150,7 @@ export default function Login() {
                         <Form onSubmit={login}>
                             {info.map(i => <Form.Control value={user[i.field]} onChange={e => setState(e.target.value, i.field)} className="mt-3 mb-1" key={i.field} type={i.type} placeholder={i.title} required />)}
 
-                            {loading === true ? <MySpinner /> : <Button type="submit" variant="success" className="mt-3 mb-1">Đăng nhập</Button>}
+                            {loading === true ? <MySpinner /> : <Button type="submit" variant="success" className="mt-3 mb-1 thesis-btn">{t('login')}</Button>}
                         </Form>
                     </div>
 
@@ -158,8 +158,8 @@ export default function Login() {
                 </Col>
 
                 {/* Right Sidebar */}
-                <Col md={2} className="bg-light border-start p-3">
-                    <Sidebar />
+                <Col md={2} className="bg-dark text-white rounded-4 border-start p-3">
+                    
                 </Col>
             </Row>
         </Container>

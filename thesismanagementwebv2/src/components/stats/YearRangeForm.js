@@ -15,6 +15,8 @@ const YearRangeForm = ({
     setEndYear,
     onFetchScoreStats,
     onFetchParticipationStats,
+    showScoreStats,
+    showParticipantStats,
 }) => {
     const { t } = useTranslation();
 
@@ -43,10 +45,16 @@ const YearRangeForm = ({
                             </Col>
                         </Row>
                     </Form.Group>
-                    <Button onClick={onFetchScoreStats} className="me-2 stats-btn">
+                    <Button onClick={() => {
+                        onFetchScoreStats();
+                        showScoreStats();
+                    }} className="me-2 stats-btn">
                         {t("view-score-stats")}
                     </Button>
-                    <Button onClick={onFetchParticipationStats} className="me-2 stats-btn">
+                    <Button onClick={() => {
+                        onFetchParticipationStats();
+                        showParticipantStats();
+                    }} className="me-2 stats-btn">
                         {t("view-participation-stats")}
                     </Button>
                 </Form>

@@ -10,6 +10,7 @@ export const createCouncil = async(data) => {
         return response.data;
     } catch (error) {
         console.error("Lỗi khi gọi API:", error.response?.data || error.message);
+        console.error(error.response?.data);
         throw error;
     }
 };

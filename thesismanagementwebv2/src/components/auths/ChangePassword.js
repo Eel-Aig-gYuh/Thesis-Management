@@ -51,12 +51,14 @@ export default function ChangePassword() {
 
         if (form.new_password !== form.confirm_password) {
             setErr('Mật khẩu mới không khớp!');
+            setLoading(false);
             return;
         }
 
         if (form.newPassword === process.env.REACT_APP_DEFAULT_PASSWORD) {
             setErr('Mật khẩu không hợp lệ !');
-            return;
+            setLoading(false);
+            return ;
         }
 
         try {
