@@ -1,4 +1,5 @@
 import React from 'react'
+import { Image } from 'react-bootstrap';
 import styled from 'styled-components';
 
 const MessageContainer = styled.div`
@@ -25,10 +26,16 @@ export default function MessageItem({ message, currentUser }) {
     return (
         <MessageContainer isMine={isMine}>
             <MessageBubble isMine={isMine}>
-                <div style={{fontSize: "13px"}}>
-                    {message?.text}
-                </div>
+                {message.type === 'image' ? (
+                    <Image src={message.text} alt='Chat image'
+                        style={{maxHeight: "100px", maxWidth: "100px", borderRadius: "0.7rem"}}
+                    />
+                ) : (
+                    <div style={{ fontSize: "13px" }}>
+                        {message?.text}
+                    </div>
+                )}
             </MessageBubble>
-        </MessageContainer>
-  )
+        </MessageContainer >
+    )
 }

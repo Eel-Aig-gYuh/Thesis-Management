@@ -190,7 +190,7 @@ export const calculateAverageScore = async (thesisId) => {
 export const uploadThesisFile = async (thesisId, fileUrl) => {
     const payload = {
         "thesisId": thesisId,
-        "file": fileUrl
+        "thesisFile": fileUrl
     }
     console.log(`Gửi request upload file khóa luận ID: ${thesisId}`, payload);
 

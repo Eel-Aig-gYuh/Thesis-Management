@@ -40,6 +40,8 @@ export const endpoints = {
     'statistic/score': "/secure/score/statistic/scores",
     'statistic/pariticipation': "/secure/score/statistic/participation",
     'statistic/get-pdf': "/secure/score/report/average-scores/",
+
+    'chat/upload-image': "/secure/chat/upload-image",
 }
 
 export const authApis = () => {

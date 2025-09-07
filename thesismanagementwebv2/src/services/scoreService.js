@@ -5,7 +5,7 @@ export const submitCouncilScores = async (councilId, payload) => {
         const response = await authApis().post(endpoints['score/submit'](councilId), payload);
         return response.data;
     } catch (error) {
-        throw error.response?.data || error.message;
+        throw error;
     }
 };
 

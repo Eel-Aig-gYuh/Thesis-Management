@@ -266,6 +266,8 @@ const CouncilCreatePage = () => {
         };
 
         try {
+            setLoading(true);
+
             if (isEditMode) {
                 console.log(payload);
                 console.log(user);
@@ -280,9 +282,11 @@ const CouncilCreatePage = () => {
             console.error("Submit error:", error);
             toast(
                 `${isEditMode ? t("update-council-failure") : t("create-council-failure")
-                }: ${error.response?.data?.message || error.message}`,
+                }: ${error.response?.data || error.message}`,
                 "danger"
             );
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -294,172 +298,176 @@ const CouncilCreatePage = () => {
         }));
     }, [selectedTheses]);
 
-    if (loading) return <MySpinner />;
-
     return (
         <div className="container mt-4 bg-white p-4 rounded-4">
             <h2 className="theis-title-list text-center mb-5 fw-bold" style={{ color: "white" }}>
                 {isEditMode ? t("edit-council") : t("create-council")}
             </h2>
 
-            <Row className="content-info">
-                <Col md={6}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>
-                            <div className="fw-bold">
-                                {t("council-name")}
-                            </div>
-                        </Form.Label>
-                        <Form.Control
-                            value={council.name}
-                            onChange={(e) => setCouncil({ ...council, name: e.target.value })}
-                            placeholder={t("enter-council-name")}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>
-                            <div className="fw-bold">
-                                {t("defense-date")}
-                            </div>
-                        </Form.Label>
-                        <Form.Control
-                            type="datetime-local"
-                            min={new Date().toISOString().slice(0, 16)}
-                            value={council.defenseDate}
-                            onChange={(e) => setCouncil({ ...council, defenseDate: e.target.value })}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>
-                            <div className="fw-bold">
-                                {t("defense-location")}
-                            </div>
-                        </Form.Label>
-                        <Form.Control
-                            value={council.defenseLocation}
-                            onChange={(e) => setCouncil({ ...council, defenseLocation: e.target.value })}
-                            placeholder={t("enter-defense-location")}
-                        />
-                    </Form.Group>
-                </Col>
-
-                <Col md={6}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>
-                            <div className="fw-bold">
-                                {t("council-members")}
-                            </div>
-                        </Form.Label>
-                        <CouncilMembersEditor
-                            members={council.members}
-                            onChange={(updatedMembers) => setCouncil({ ...council, members: updatedMembers })}
-                            onAddMember={() => {
-                                if (council.members.length >= 5) {
-                                    toast(t("max-five-members"), "danger");
-                                    return;
-                                }
-                                setCouncil((prev) => ({
-                                    ...prev,
-                                    members: [
-                                        ...prev.members,
-                                        { userId: null, name: "", role: "MEMBER", showSelect: false },
-                                    ],
-                                }));
-                            }}
-                            onRemoveMember={(index) => {
-                                if (council.members.length <= 3) {
-                                    toast(t("min-three-members"), "danger");
-                                    return;
-                                }
-                                const updated = [...council.members];
-                                updated.splice(index, 1);
-                                setCouncil({ ...council, members: updated });
-                            }}
-                        />
-                        <Row>
-                            <Col md={1}></Col>
-                            <Col md={11} style={{ textAlign: "right" }}>
-                                <Form.Text className="text-muted">
-                                    ? {t("members-limit-hint", { count: council.members.length })}
-                                </Form.Text>
-                            </Col>
-                        </Row>
-                    </Form.Group>
-                </Col>
-            </Row>
-
-            <Row className="content-info mt-4">
-                <Form.Group className="mb-3 mt-4">
-                    <ThesisDualList
-                        availableTheses={uniqueTheses}
-                        selectedTheses={selectedTheses}
-                        setSelectedTheses={(newSelected) => {
-                            if (newSelected.length > 5) {
-                                toast(t("max-five-theses"), "danger");
-                                return;
-                            }
-                            setSelectedTheses(newSelected);
-                        }}
-                        loadMore={loadMore}
-                        hasMore={hasMore}
-                        loading={loading}
-                        resetItems={resetItems}
-                    />
-                    <Row>
-                        <Col md={6} style={{ textAlign: "right" }}>
-                            <Form.Text className="text-muted">
-                                ? {t("theses-limit-hint", { count: selectedTheses.length })}
-                            </Form.Text>
+            {loading ? (
+                <MySpinner />
+            ) : (
+                <div>
+                    <Row className="content-info">
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("council-name")}
+                                    </div>
+                                </Form.Label>
+                                <Form.Control
+                                    value={council.name}
+                                    onChange={(e) => setCouncil({ ...council, name: e.target.value })}
+                                    placeholder={t("enter-council-name")}
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("defense-date")}
+                                    </div>
+                                </Form.Label>
+                                <Form.Control
+                                    type="datetime-local"
+                                    min={new Date().toISOString().slice(0, 16)}
+                                    value={council.defenseDate}
+                                    onChange={(e) => setCouncil({ ...council, defenseDate: e.target.value })}
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("defense-location")}
+                                    </div>
+                                </Form.Label>
+                                <Form.Control
+                                    value={council.defenseLocation}
+                                    onChange={(e) => setCouncil({ ...council, defenseLocation: e.target.value })}
+                                    placeholder={t("enter-defense-location")}
+                                />
+                            </Form.Group>
                         </Col>
-                        <Col md={6} >
+
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>
+                                    <div className="fw-bold">
+                                        {t("council-members")}
+                                    </div>
+                                </Form.Label>
+                                <CouncilMembersEditor
+                                    members={council.members}
+                                    onChange={(updatedMembers) => setCouncil({ ...council, members: updatedMembers })}
+                                    onAddMember={() => {
+                                        if (council.members.length >= 5) {
+                                            toast(t("max-five-members"), "danger");
+                                            return;
+                                        }
+                                        setCouncil((prev) => ({
+                                            ...prev,
+                                            members: [
+                                                ...prev.members,
+                                                { userId: null, name: "", role: "MEMBER", showSelect: false },
+                                            ],
+                                        }));
+                                    }}
+                                    onRemoveMember={(index) => {
+                                        if (council.members.length <= 3) {
+                                            toast(t("min-three-members"), "danger");
+                                            return;
+                                        }
+                                        const updated = [...council.members];
+                                        updated.splice(index, 1);
+                                        setCouncil({ ...council, members: updated });
+                                    }}
+                                />
+                                <Row>
+                                    <Col md={1}></Col>
+                                    <Col md={11} style={{ textAlign: "right" }}>
+                                        <Form.Text className="text-muted">
+                                            ? {t("members-limit-hint", { count: council.members.length })}
+                                        </Form.Text>
+                                    </Col>
+                                </Row>
+                            </Form.Group>
                         </Col>
                     </Row>
-                </Form.Group>
-            </Row>
 
-            <div className="text-end mt-4">
-                <Button
-                    variant="secondary"
-                    className="me-2 thesis-btn"
-                    onClick={() => navigate("/council")}
-                >
-                    {t("cancel")}
-                </Button>
-                <Button
-                    variant="warning"
-                    className="me-2 thesis-btn"
-                    onClick={() => {
-                        localStorage.setItem("councilDraft", JSON.stringify({ council, selectedTheses }));
-                        toast(t("save-draft-success"), "success");
-                    }}
-                >
-                    {t("save-draft")}
-                </Button>
-                <Button
-                    variant="info"
-                    className="me-2 thesis-btn"
-                    onClick={() => setShowLoadDraftModal(true)}
-                >
-                    {t("load-draft")}
-                </Button>
+                    <Row className="content-info mt-4">
+                        <Form.Group className="mb-3 mt-4">
+                            <ThesisDualList
+                                availableTheses={uniqueTheses}
+                                selectedTheses={selectedTheses}
+                                setSelectedTheses={(newSelected) => {
+                                    if (newSelected.length > 5) {
+                                        toast(t("max-five-theses"), "danger");
+                                        return;
+                                    }
+                                    setSelectedTheses(newSelected);
+                                }}
+                                loadMore={loadMore}
+                                hasMore={hasMore}
+                                loading={loading}
+                                resetItems={resetItems}
+                            />
+                            <Row>
+                                <Col md={6} style={{ textAlign: "right" }}>
+                                    <Form.Text className="text-muted">
+                                        ? {t("theses-limit-hint", { count: selectedTheses.length })}
+                                    </Form.Text>
+                                </Col>
+                                <Col md={6} >
+                                </Col>
+                            </Row>
+                        </Form.Group>
+                    </Row>
 
-                <ConfirmModal
-                    show={showLoadDraftModal}
-                    onHide={() => setShowLoadDraftModal(false)}
-                    onConfirm={() => {
-                        loadDraft();
-                        setShowLoadDraftModal(false);
-                    }}
-                    title={t("confirm-load-draft-title")}
-                    message={t("confirm-load-draft-message")}
-                    confirmText={t("load-draft")}
-                    cancelText={t("cancel")}
-                />
+                    <div className="text-end mt-4">
+                        <Button
+                            variant="secondary"
+                            className="me-2 thesis-btn"
+                            onClick={() => navigate("/council")}
+                        >
+                            {t("cancel")}
+                        </Button>
+                        <Button
+                            variant="warning"
+                            className="me-2 thesis-btn"
+                            onClick={() => {
+                                localStorage.setItem("councilDraft", JSON.stringify({ council, selectedTheses }));
+                                toast(t("save-draft-success"), "success");
+                            }}
+                        >
+                            {t("save-draft")}
+                        </Button>
+                        <Button
+                            variant="info"
+                            className="me-2 thesis-btn"
+                            onClick={() => setShowLoadDraftModal(true)}
+                        >
+                            {t("load-draft")}
+                        </Button>
 
-                <Button variant="primary" className="thesis-btn" onClick={handleSubmit}>
-                    {isEditMode ? t("update-council-btn") : t("create-council-btn")}
-                </Button>
-            </div>
+                        <ConfirmModal
+                            show={showLoadDraftModal}
+                            onHide={() => setShowLoadDraftModal(false)}
+                            onConfirm={() => {
+                                loadDraft();
+                                setShowLoadDraftModal(false);
+                            }}
+                            title={t("confirm-load-draft-title")}
+                            message={t("confirm-load-draft-message")}
+                            confirmText={t("load-draft")}
+                            cancelText={t("cancel")}
+                        />
+
+                        <Button variant="primary" className="thesis-btn" onClick={handleSubmit}>
+                            {isEditMode ? t("update-council-btn") : t("create-council-btn")}
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
