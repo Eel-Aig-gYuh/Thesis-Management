@@ -29,6 +29,12 @@ This is a full-stack web application for managing thesis scores, featuring a Jav
 - Firebase chat realtime.
 - Gemini flask 2.0.
 
+🖥️ Main functions
+- 👨‍🎓 Students: register, submit files, track progress
+- 👩‍🏫 Lecturers: set questions, guide, review
+- 🏛️ Council: assign grading, enter scores
+- 📊 Administrator: statistics, authorization
+
 ## Prerequisites
 - **Back-end**:
   - **Java**: OpenJDK 17 or later
