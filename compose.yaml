@@ -1,0 +1,60 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: thesismysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin@123
+      MYSQL_DATABASE: thesisdb
+    ports:
+      - "3307:3306"
+    networks:
+      - thesis-net
+
+  # Backend instances (multiple instances for load balancing)
+  backend1:
+    build:
+      context: ./ThesisManagement
+      dockerfile: Dockerfile
+    container_name: thesisbackend1
+    ports:
+      - "8081:8080"  # Map to different host ports
+    depends_on:
+      - mysql
+    networks:
+      - thesis-net
+
+  backend2:
+    build:
+      context: ./ThesisManagement
+      dockerfile: Dockerfile
+    container_name: thesisbackend2
+    ports:
+      - "8082:8080"
+    depends_on:
+      - mysql
+    networks:
+      - thesis-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: thesisnginx
+    ports:
+      - "80:80"     # HTTP cho frontend
+      - "8080:8080" # API gateway cho backend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend1
+      - backend2
+    networks:
+      - thesis-net
+    restart: unless-stopped # Trang thai tu dong restart
+
+networks:
+  thesis-net:
+    driver: bridge
+
+volumes:
+  java-app:
