@@ -1,4 +1,10 @@
 # Thesis-Management
+## System architecture
+<p align="center">
+  <img src="https://github.com/Eel-Aig-gYuh/Thesis-Management/blob/main/assert/Screenshot%202025-09-10%20162614.png" height="250"/>
+</p>
+
+
 
 ## Table of Contents
 - [Overview](#overview)
